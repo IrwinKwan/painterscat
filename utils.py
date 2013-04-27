@@ -5,11 +5,18 @@ from pygame.compat import geterror
 
 import spritesheet
 
+from pvector import PVector
+
 class Constant():
     WALL_SIZE = 16
     SCREEN_SIZE = 640
     PAINT_SIZE = 8
     BACKGROUND_WIDTH = 608
+    
+    LEFT = PVector(-1,0)
+    RIGHT = PVector(1,0)
+    DOWN = PVector(0,1)
+    UP = PVector(0,-1)
     
 class Asset(object):
     

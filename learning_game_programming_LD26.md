@@ -102,3 +102,7 @@ __2013-04-27	08:57:45__	Stop for breakfast
 __2013-04-27	09:09:12__	Resume trying to figure out why my sprite won't draw anymore
 
 __2013-04-27	09:13:53__	HA I figured it out. In your sprite class, you need to pass a self.containers argument to the superclass constructor to get the containers and the render of updates working.
+
+__2013-04-27	10:33:36__	Trying to add in a "painted line". I'm now getting "invalid destination for blit" after adding in some code to try to expand the vertical height of the Surface image.
+
+__2013-04-27	11:00:03__	Some success - the surface now grows properly and draws the lines moving up toward the top of the screen!

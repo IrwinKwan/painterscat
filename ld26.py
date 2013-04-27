@@ -25,6 +25,8 @@ from utils import Constant
 
 import characters
 from characters import Cat
+from characters import Paint
+
 import walls
 from messages import Console
 
@@ -91,10 +93,14 @@ def main(winstyle = 0):
     laser_sounds = create_laser_sounds()
     
     # Game groups
+    painted_lines = pygame.sprite.Group()
+    
     all = pygame.sprite.RenderUpdates()
+    
     
     # Assign groups to each sprite class
     Cat.containers = all
+    Paint.containers = all
     
     angleText = Console(background, background.get_width()/2, 40)
     
@@ -122,6 +128,12 @@ def main(winstyle = 0):
 
         all.clear(screen, background)
         all.update()
+        
+        painting = keystate[K_SPACE]
+        if painting:
+            Paint(cat.position(), cat.facing)
+            
+            # paint_sounds[random.randint(0,1)].play()
         
         cat.move()
         

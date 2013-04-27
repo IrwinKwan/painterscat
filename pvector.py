@@ -120,6 +120,9 @@ class PVector(list):
         d = self.dot(v2) / self.mag() * v2.mag()
         return acos(d)
         
+    def equals(self, v2):
+        return (self.x == v2.x and self.y == v2.y and self.z == v2.z)
+        
     # Getters and setters
     def __getx(self): return self [0]
 
@@ -160,3 +163,8 @@ if __name__=="__main__":
     angle = c.angle_between(d)
     print angle
     print angle * 180 / pi
+    
+    e = PVector(0,-1)
+    f = PVector(0,-1)
+    print e.equals(f)
+    print c.equals(f)
