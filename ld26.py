@@ -31,15 +31,13 @@ from characters import Square
 import walls
 from messages import Console
 
-
-
-# @TODO: This is going to have to become a class later
-def create_laser_sounds():
-    lasers = []
-    lasers.append(Asset.load_sound('laser_01.wav'))
-    lasers.append(Asset.load_sound('laser_02.wav'))
+def load_staccato_sounds():
+    staccatos = []
+    staccatos.append(Asset.load_sound('staccato-Bb.wav'))
+    staccatos.append(Asset.load_sound('staccato-D.wav'))
+    staccatos.append(Asset.load_sound('staccato-F.wav'))
     
-    return lasers
+    return staccatos
 
 def create_background(screen):
     return walls.Walls()
@@ -91,17 +89,17 @@ def main(winstyle = 0):
     
     
     
-    laser_sounds = create_laser_sounds()
+    staccato_sounds = load_staccato_sounds()
     
     # Game groups
-    painted = pygame.sprite.Group()
+    paints = pygame.sprite.Group()
     squares = pygame.sprite.Group()
     all = pygame.sprite.RenderUpdates()
     
     
     # Assign groups to each sprite class
     Cat.containers = all
-    Paint.containers = painted, all
+    Paint.containers = paints, all
     Square.containers = squares, all
     
     angleText = Console(background, background.get_width()/2, 40)
@@ -147,12 +145,15 @@ def main(winstyle = 0):
         if len(squares) == 0:
             Square()
             # Square()
+            
+        # Collision detection. Paint hits square. It should be limited to
+        # the end of the paint rather than the body?
+        for square in pygame.sprite.groupcollide(squares, paints, 1, 1).keys():
+            staccato_sounds[0].play()
+            square.cut()
         
         dirty = all.draw(screen)
         pygame.display.update(dirty)
-        
-        # @TODO This is probably not needed here - but the sprite doesn't flip yet.
-        pygame.display.flip()
         
         clock.tick(60)
         

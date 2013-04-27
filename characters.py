@@ -282,7 +282,9 @@ class Square(pygame.sprite.Sprite):
             self.scale += self.growth
             self.scaled_size = int(self.width * self.scale)
             
-            
+    def cut(self):
+        print "Cut"
+        
     def update(self):
         self.__grow()
         

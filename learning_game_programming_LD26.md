@@ -124,3 +124,5 @@ __2013-04-27	11:32:09__	I need to add something for the Paint to collide with be
 __2013-04-27	12:16:20__	The square successfully grows in size and kind of caps off around the screen edges. Good enough. Time to do square-based collision detection between the Paint and the Square.
 
 __2013-04-27	12:16:46__	The ideal behaviour, eventually is that the paint will "overwrite" the square and actually cut it such that the half with the least area will disappear (after the line's crossed the square). Theoretically I should also stop the growing of the square as well when the paint contacts the square.
+
+__2013-04-27	12:42:06__	I added in some collision detection and I magically seemed to have gotten a bunch of stuff for free, like the items are destroyed and a new square spawns. Technically if I started keeping score and added a win or lose condition I have an initial game!
