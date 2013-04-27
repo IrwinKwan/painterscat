@@ -288,13 +288,13 @@ class Square(pygame.sprite.Sprite):
     def update(self):
         self.__grow()
         
-        print "self.scaled_size: " + str(self.scaled_size)
+        # print "self.scaled_size: " + str(self.scaled_size)
         
         self.image = pygame.transform.scale(self.image,
             (self.scaled_size, self.scaled_size))
         self.rect = self.image.get_rect()
-        self.rect = self.rect.clamp(Constant.SCREEN_RECT)
         self.rect.center = self.position
+        self.rect = self.rect.clamp(Constant.SCREEN_RECT)
         
         #print "Scale size: " + str(scale_size)
         #print "Image rect: " + str(self.image.get_rect())

@@ -76,7 +76,7 @@ def main(winstyle = 0):
     bestdepth = pygame.display.mode_ok(screen_rect.size, winstyle, 32)
     screen = pygame.display.set_mode(screen_rect.size, winstyle, bestdepth)
     
-    pygame.mouse.set_visible(True)
+    pygame.mouse.set_visible(False)
     pygame.display.set_caption("Mondrian Squares")
     
     # Assign images to the sprites. Wonder why you don't do this at initialization?
@@ -90,6 +90,7 @@ def main(winstyle = 0):
     
     
     staccato_sounds = load_staccato_sounds()
+    meow_sound = Asset.load_sound("meow.wav")
     
     # Game groups
     paints = pygame.sprite.Group()
@@ -114,7 +115,7 @@ def main(winstyle = 0):
     Square()
     
     going = True
-    while going:
+    while cat.alive():
         
                 
         for event in pygame.event.get():
@@ -146,11 +147,17 @@ def main(winstyle = 0):
             Square()
             # Square()
             
-        # Collision detection. Paint hits square. It should be limited to
+        # Collision detection.
+        for square in pygame.sprite.spritecollide(cat, squares, True, False):
+            meow_sound.play()
+            cat.kill()
+        
+        
+        # Paint hits square. It should be limited to
         # the end of the paint rather than the body?
-        for square in pygame.sprite.groupcollide(squares, paints, 1, 1).keys():
+        for squares_collision in pygame.sprite.groupcollide(squares, paints, True, True):
             staccato_sounds[0].play()
-            square.cut()
+            squares_collision.cut()
         
         dirty = all.draw(screen)
         pygame.display.update(dirty)
