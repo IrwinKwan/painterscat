@@ -18,6 +18,9 @@ class Constant():
     DOWN = PVector(0,1)
     UP = PVector(0,-1)
     
+    #SCREEN_RECT = pygame.Rect(Constant.WALL_SIZE, Constant.WALL_SIZE, Constant.BACKGROUND_WIDTH, Constant.BACKGROUND_WIDTH)
+    SCREEN_RECT = Rect(16, 16, 608, 608)
+    
 class Asset(object):
     
     main_dir = os.path.split(os.path.abspath(__file__))[0]

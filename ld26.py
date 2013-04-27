@@ -26,6 +26,7 @@ from utils import Constant
 import characters
 from characters import Cat
 from characters import Paint
+from characters import Square
 
 import walls
 from messages import Console
@@ -93,14 +94,15 @@ def main(winstyle = 0):
     laser_sounds = create_laser_sounds()
     
     # Game groups
-    painted_lines = pygame.sprite.Group()
-    
+    painted = pygame.sprite.Group()
+    squares = pygame.sprite.Group()
     all = pygame.sprite.RenderUpdates()
     
     
     # Assign groups to each sprite class
     Cat.containers = all
-    Paint.containers = all
+    Paint.containers = painted, all
+    Square.containers = squares, all
     
     angleText = Console(background, background.get_width()/2, 40)
     
@@ -111,6 +113,7 @@ def main(winstyle = 0):
     
     # Initialize starting sprites
     cat = Cat()
+    Square()
     
     going = True
     while going:
@@ -129,6 +132,7 @@ def main(winstyle = 0):
         all.clear(screen, background)
         all.update()
         
+        # Player input
         painting = keystate[K_SPACE]
         if painting:
             Paint(cat.position(), cat.facing)
@@ -136,6 +140,13 @@ def main(winstyle = 0):
             # paint_sounds[random.randint(0,1)].play()
         
         cat.move()
+        
+        # Spawn a square
+        # @TODO I want to eventually do "levels" and wipe the screen
+        # but we'll see if I can actually get that far
+        if len(squares) == 0:
+            Square()
+            # Square()
         
         dirty = all.draw(screen)
         pygame.display.update(dirty)
