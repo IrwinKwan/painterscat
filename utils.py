@@ -5,6 +5,12 @@ from pygame.compat import geterror
 
 import spritesheet
 
+class Constant():
+    WALL_SIZE = 16
+    SCREEN_SIZE = 640
+    PAINT_SIZE = 8
+    BACKGROUND_WIDTH = 608
+    
 class Asset(object):
     
     main_dir = os.path.split(os.path.abspath(__file__))[0]

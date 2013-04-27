@@ -84,3 +84,21 @@ __2013-04-26	23:03:51__	That wasn't that useful. All I really want is a repeatin
 __2013-04-26	23:45:21__	Small victory: drew the backgrounds some hours ago now.
 
 __2013-04-26	23:45:27__	Another small victory: found out about a "clamp" method that may be promising for making sure input doesn't leave a bounding box
+
+__2013-04-27	07:38:16__	Last night I stopped around 12:30 midnight, today I resume. First lesson is to identify how to make the main character "shoot" a graphic laser that paints on the screen and looks like a brush stroke. Except Piet Mondrian's lines don't look like brush strokes, so I might actually be okay with hard edges.
+
+__2013-04-27	07:43:19__	Decision: hard edges first, brush strokes later.
+
+__2013-04-27	08:07:04__	I was going to work on shooting, but the bad mouse movement really bugged me. The solution? To divide the square into eights rather than to use quarters, and to use topleft, topright, bottomleft, bottomright to avoid clipping with the wall.
+
+__2013-04-27	08:10:57__	Okay, that didn't fix the problem. I'm going to need something more fine-tuned.
+
+__2013-04-27	08:13:30__	Solution to the mouse problem: clamp AFTER the mouse movement is assigned. I don't know now if some of the code above is function-less code. I think it might be but I'll leave it in since it seems to work. I'll do some runtime testing after the compo if I want to figure out if it actually helps. See characters.py:Cat.move()
+
+__2013-04-27	08:14:26__	Now, back to FIRING MY LASERS
+
+__2013-04-27	08:57:45__	Stop for breakfast
+
+__2013-04-27	09:09:12__	Resume trying to figure out why my sprite won't draw anymore
+
+__2013-04-27	09:13:53__	HA I figured it out. In your sprite class, you need to pass a self.containers argument to the superclass constructor to get the containers and the render of updates working.

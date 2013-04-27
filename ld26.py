@@ -21,12 +21,14 @@ from pygame.compat import geterror
 from pvector import PVector
 
 from utils import Asset
+from utils import Constant
+
 import characters
+from characters import Cat
 import walls
 from messages import Console
 
-if not pygame.font: print ('Warning, fonts disabled')
-if not pygame.mixer: print ('Warning, sound disabled')
+
 
 # @TODO: This is going to have to become a class later
 def create_laser_sounds():
@@ -60,60 +62,80 @@ def mouse_angle(background, pos):
 
     
        
-def main():
+def main(winstyle = 0):
     pygame.init()
-    screen = pygame.display.set_mode((640,640))
+    if not pygame.font:
+        print ('Warning, fonts disabled')
+        
+    if not pygame.mixer:
+        print ('Warning, sound disabled')
     
+    winstyle = 0  # |FULLSCREEN
+    screen_rect = pygame.Rect(0, 0, Constant.SCREEN_SIZE, Constant.SCREEN_SIZE)
+    bestdepth = pygame.display.mode_ok(screen_rect.size, winstyle, 32)
+    screen = pygame.display.set_mode(screen_rect.size, winstyle, bestdepth)
     
     pygame.mouse.set_visible(True)
+    pygame.display.set_caption("Mondrian Squares")
     
-    pygame.display.set_caption("Squares")
+    # Assign images to the sprites. Wonder why you don't do this at initialization?
+    Cat.images = Asset.load_image("cat_main.png", [(0,0,32,32),(33,0,32,32)], -1)
     
+    # Background
     levelWalls = walls.Walls(screen)
-    background = levelWalls.background
+    background = levelWalls.background 
     pygame.display.flip()
     
-    screen_rect = screen.get_rect()
     
-    clock = pygame.time.Clock()
+    
     laser_sounds = create_laser_sounds()
-    cat = characters.Cat(screen_rect, [levelWalls.wall_width,levelWalls.wall_height])
     
-    allsprites = pygame.sprite.RenderPlain((cat))
+    # Game groups
+    all = pygame.sprite.RenderUpdates()
+    
+    # Assign groups to each sprite class
+    Cat.containers = all
+    
     angleText = Console(background, background.get_width()/2, 40)
     
     angleTextMessage = 0
     angle = 0
     
-    screen_rect = screen.get_size()
-
+    clock = pygame.time.Clock()
+    
+    # Initialize starting sprites
+    cat = Cat()
     
     going = True
     while going:
-        clock.tick(60)
+        
                 
         for event in pygame.event.get():
             if event.type == QUIT:
                 going = False
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 going = False
-            elif event.type == MOUSEBUTTONDOWN:
-                laser_sounds[random.randint(0,1)].play()
-            elif event.type == MOUSEMOTION:
-                cat.move()
-                mousex, mousey = event.pos
-                
-                # Do some angle calculations
-                angle = mouse_angle(background, event.pos)
-                angleTextMessage = angle
-                
+            
+            #elif event.type == MOUSEBUTTONDOWN:
+            #    laser_sounds[random.randint(0,1)].play()
+        keystate = pygame.key.get_pressed()
+
+        all.clear(screen, background)
+        all.update()
         
-        allsprites.update()
-        screen.blit(background, (0,0))
-        allsprites.draw(screen)
-        # angleText.render(angleTextMessage)
+        cat.move()
+        
+        dirty = all.draw(screen)
+        pygame.display.update(dirty)
+        
+        # @TODO This is probably not needed here - but the sprite doesn't flip yet.
         pygame.display.flip()
         
+        clock.tick(60)
+        
+    if pygame.mixer:
+        pygame.mixer.music.fadeout(1000)
+    pygame.time.wait(1000)
     pygame.quit()
 
 if __name__ == '__main__':

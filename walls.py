@@ -1,6 +1,7 @@
 import pygame
 from utils import Asset
 
+# @TODO: Later, I need to not blit the solid walls. Those walls never need to be redrawn.
 class Walls:
     def __init__(self, screen):
         self.image, self.rect = Asset.load_one_image('wall.png', (255,255,255))
