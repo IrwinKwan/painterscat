@@ -252,6 +252,10 @@ def main(winstyle = 0):
     angleTextMessage = 0
     angle = 0
     
+    Asset.play_music('game.ogg')
+    if pygame.mixer:
+        pygame.mixer.music.set_volume(0.5)
+        
     clock = pygame.time.Clock()
     
     # Initialize starting sprites
@@ -364,8 +368,8 @@ def main(winstyle = 0):
         clock.tick(60)
         prev_mouse_position = pygame.mouse.get_pos()
         
-    #if pygame.mixer:
-    #    pygame.mixer.music.fadeout(1000)
+    if pygame.mixer:
+        pygame.mixer.music.fadeout(1000)
     
     end_time = pygame.time.get_ticks()
     
@@ -400,8 +404,9 @@ def main(winstyle = 0):
         event = pygame.event.wait()
         if event.type == QUIT or event.type == KEYDOWN and event.key == K_ESCAPE or event.type == MOUSEBUTTONDOWN or (event.type == KEYDOWN and event.key == K_SPACE):
             on_score = False
-            
-    pygame.mixer.music.fadeout(2000)
+     
+    if pygame.mixer:       
+        pygame.mixer.music.fadeout(2000)
     pygame.event.clear()
     pygame.quit()
 
