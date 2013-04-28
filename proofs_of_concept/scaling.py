@@ -33,7 +33,7 @@ class Block(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.original, (self.size, self.size))
         self.rect = self.image.get_rect()
         self.rect.move_ip( (self.position[0] - self.size/2, self.position[1] - self.size/2) )
-        print self.rect
+        # self.rect.clamp_ip(pygame.Rect(0,0,SCREEN_SIZE,SCREEN_SIZE))
 
 class Red(pygame.sprite.Sprite):
 

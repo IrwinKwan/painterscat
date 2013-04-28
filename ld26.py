@@ -35,6 +35,7 @@ import walls
 import messages
 
 
+
 def load_staccato_sounds():
     staccatos = []
     staccatos.append(Asset.load_sound('staccato-Bb.wav'))
@@ -148,12 +149,12 @@ def main(winstyle = 0):
         print ('Warning, sound disabled')
         
     statistics = {
-        "time_played": 0,
-        "lines": 0,
-        "lines_end": 0,
-        "squares": 0,
-        "squares_appeared": 0
-    }
+            "time_played": 0,
+            "lines": 0,
+            "lines_end": 0,
+            "squares": 0,
+            "squares_appeared": 0
+        }
     
     winstyle = 0  # |FULLSCREEN
     screen_rect = pygame.Rect(0, 0, Constant.SCREEN_SIZE, Constant.SCREEN_SIZE)
@@ -303,10 +304,11 @@ def main(winstyle = 0):
         
         # Paint hits square. It should be limited to
         # the end of the paint rather than the body?
-        for squares_collision in pygame.sprite.groupcollide(squares, paints, True, True):
-            random.choice(staccato_sounds).play()
-            squares_collision.cut()
+        for square, paints in pygame.sprite.groupcollide(squares, paints, False, False):
             statistics["squares"] += 1
+            random.choice(staccato_sounds).play()
+            
+            
             
             # if spawn_more 
         

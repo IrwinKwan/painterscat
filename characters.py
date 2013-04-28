@@ -219,8 +219,6 @@ class Paint(pygame.sprite.Sprite):
         
         pygame.draw.rect(self.image, self.color, [self.size/2, self.size/2, self.current_height, self.current_width])
         
-        
-        
 
 class Square(pygame.sprite.Sprite):
     """A square. All of the enemies in this game are going to be kind of like
@@ -239,6 +237,11 @@ class Square(pygame.sprite.Sprite):
     scale = 1.0
     growth = 0.1
     
+    dont_growth_up = False
+    dont_growth_down = False
+    dont_growth_left = False
+    dont_growth_right = False
+    
     restricted_width = 32 # places not to spawn to not kill the player
     
     def __init__(self, color="red"):
@@ -250,6 +253,7 @@ class Square(pygame.sprite.Sprite):
         
         # Squares are 16x16 and have 5 frames
         # rects = [(17 * x, 0, self.width, self.width) for x in range(0,5)]
+        # statistics["squares_appeared"] += 1
         
         if color == "red":
             self.color = random.choice(self.reds)
@@ -280,7 +284,9 @@ class Square(pygame.sprite.Sprite):
         
         # self.mask = pygame.mask.from_surface(self.image)
         
-        self.scaled_size = int(self.width * self.scale)
+        self.scaled_size = [0, 0, 0, 0]
+        self.scaled_size[0] = int(self.width * self.scale)
+        self.scaled_size[1] = int(self.width * self.scale)
     
     def __grow(self):
         if self.rect.top < Constant.SCREEN_RECT.top:
@@ -295,8 +301,19 @@ class Square(pygame.sprite.Sprite):
         self.scale += self.growth
         self.scaled_size = int(self.width * self.scale)
             
-    def cut(self):
-        print "Cut"
+    def cut(self, paint):
+        """Cuts the square where the paint intersects"""
+        
+        # Stop growing
+        self.growth = 0
+        
+        # Get where the paint crosses the square
+        intersect_rect = paint.rect(self.rect)
+        
+        print intersect_rect.center
+        print paint.direction
+        
+        
         
     def update(self):
         self.__grow()

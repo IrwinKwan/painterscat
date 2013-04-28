@@ -150,3 +150,7 @@ __2013-04-27	18:19:26__ This took me the better part of the last two hours to fi
 __2013-04-27	18:23:24__	Moving on to other things... converting the square to different shades of Mondrian colors. Also, different colour squares need to grow at different rates.
 
 __2013-04-27	19:01:34__	Stopping for dinner.
+
+__2013-04-27	19:41:43__	Programming in the car!
+
+__2013-04-27	19:42:00__	I want to work on the "cut" behavior of the lines on the squares.
