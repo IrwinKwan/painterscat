@@ -7,13 +7,8 @@ import spritesheet
 
 from pvector import PVector
 
-# global statistics
-# 
-# class Stats():
-#     def __init(self)__:
-#         squares = 0
-#         squares_created = 0
-#         time_played = 0
+class Stats():
+    lines_across = 0
         
         
 class Constant():

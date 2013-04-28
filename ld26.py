@@ -22,14 +22,19 @@ from pygame.compat import geterror
 
 from pvector import PVector
 from pixelperfectcollision import pixel_perfect_collision
+
 from utils import Asset
 from utils import Constant
+from utils import Stats
 
 
 import characters
 from characters import Cat
 from characters import Paint
 from characters import Square
+from characters import DeadSquare
+
+from characters import Point # Debugging object
 
 import walls
 import messages
@@ -154,7 +159,9 @@ def main(winstyle = 0):
             "lines_end": 0,
             "squares": 0,
             "squares_appeared": 0
-        }
+    }
+    
+    # global stats = Statistics()
     
     winstyle = 0  # |FULLSCREEN
     screen_rect = pygame.Rect(0, 0, Constant.SCREEN_SIZE, Constant.SCREEN_SIZE)
@@ -165,7 +172,9 @@ def main(winstyle = 0):
     pygame.display.set_caption("The Painter's Cat")
     
     # Assign images to the sprites. Wonder why you don't do this at initialization?
-    Cat.images = Asset.load_image("cat_main.png", [(0,0,32,32),(33,0,32,32)], -1)
+    Cat.images = Asset.load_image("cat_new.png", [(0,0,32,32),(32,0,32,32)], -1)
+    Cat.images.append(pygame.transform.flip(Cat.images[0], 1, 0))
+    Cat.images.append(pygame.transform.flip(Cat.images[1], 1, 0))
     
     # Background
     levelWalls = walls.Walls(screen)
@@ -198,6 +207,10 @@ def main(winstyle = 0):
                 
     pygame.event.clear()
     
+    keystate = pygame.key.get_pressed()
+    
+    pygame.event.wait()
+    
     staccato_sounds = load_staccato_sounds()
     paint_sounds = load_paint_sounds()
     meow_sound = Asset.load_sound("meow.wav")
@@ -211,13 +224,19 @@ def main(winstyle = 0):
     # Game groups
     paints = pygame.sprite.Group()
     squares = pygame.sprite.Group()
-    all = pygame.sprite.RenderUpdates()
+    deadsquares = pygame.sprite.Group()
+    
+    debug = pygame.sprite.Group()
+    
+    all = pygame.sprite.OrderedUpdates()
     
     
     # Assign groups to each sprite class
     Cat.containers = all
     Paint.containers = paints, all
     Square.containers = squares, all
+    Point.containers = debug, all
+    DeadSquare.containers = deadsquares, all
     
     
     
@@ -235,10 +254,11 @@ def main(winstyle = 0):
     last_respawn = 0
     respawn_time = 0
     
+    prev_mouse_position = pygame.mouse.get_pos()
+    
     going = True
     while cat.alive() and going == True:
         
-                
         for event in pygame.event.get():
             if event.type == QUIT:
                 going = False
@@ -259,10 +279,9 @@ def main(winstyle = 0):
             Paint(cat.position(), cat.facing)
             statistics["lines"] += 1
         
-        cat.move()
+        cat.move(prev_mouse_position)
         
         respawn_time = pygame.time.get_ticks() - last_respawn
-        print respawn_time
         
         # Spawn a square
         # @TODO I want to eventually do "levels" and wipe the screen
@@ -304,19 +323,19 @@ def main(winstyle = 0):
         
         # Paint hits square. It should be limited to
         # the end of the paint rather than the body?
-        for square, paints in pygame.sprite.groupcollide(squares, paints, False, False):
+        for square, paints in pygame.sprite.groupcollide(squares, paints, False, False).items():
             statistics["squares"] += 1
             random.choice(staccato_sounds).play()
             
-            
-            
-            # if spawn_more 
+            for paint in paints:
+                square.cut(paint)
         
         dirty = all.draw(screen)
         pygame.display.update(dirty)
         
         # @TODO: Change this back to 60 after testing
-        clock.tick(20)
+        clock.tick(60)
+        prev_mouse_position = pygame.mouse.get_pos()
         
     #if pygame.mixer:
     #    pygame.mixer.music.fadeout(1000)
@@ -338,6 +357,9 @@ def main(winstyle = 0):
     
     levelWalls = walls.Walls(screen)
     background = levelWalls.background
+    
+    # @TODO, this is an inconsistent hack
+    statistics["lines_end"] = Stats.lines_across
     
     score = score_screen(background, statistics)
     background.blit(score, (0,0))
