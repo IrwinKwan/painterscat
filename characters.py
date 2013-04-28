@@ -237,6 +237,9 @@ class Paint(pygame.sprite.Sprite):
     size = 8
     color = Color("black")
     speed = 1
+    accel = 0.1
+    
+    lines_across = 0
     
     def __init__(self, pos, direction):
         pygame.sprite.Sprite.__init__(self, self.containers)
@@ -248,8 +251,6 @@ class Paint(pygame.sprite.Sprite):
         self.current_height = self.size
         self.current_width = self.size
         self.painting = True
-        
-        
         
         self.__set_direction()
         
@@ -298,12 +299,12 @@ class Paint(pygame.sprite.Sprite):
         if not self.painting:
             return
             
-        if self.current_height > Constant.SCREEN_SIZE:
-            Stats.lines_across += 1
+        if self.current_height >= Constant.SCREEN_SIZE:
+            Paint.lines_across += 1
             self.painting = False
             return
-        elif self.current_width > Constant.SCREEN_SIZE:
-            Stats.lines_across += 1
+        elif self.current_width >= Constant.SCREEN_SIZE:
+            Paint.lines_across += 1
             self.painting = False
             return
         
@@ -322,7 +323,8 @@ class Paint(pygame.sprite.Sprite):
         else:
             # Problem!
             raise DirectionException("Paint, invalid direction!")
-                
+        
+        self.speed += self.accel
         
     def update(self):
         self.__set_direction()
@@ -399,12 +401,49 @@ class Square(pygame.sprite.Sprite):
     
     restricted_width = 32 # places not to spawn to not kill the player
     
-    def __init__(self, color="red"):
-        pygame.sprite.Sprite.__init__(self, self.containers)
+    def __choose_random_spawn_point(self, spawn_buffer):
         
-        x = random.randint(Constant.SCREEN_RECT.left + self.restricted_width, Constant.SCREEN_RECT.width - self.restricted_width)
-        y = random.randint(Constant.SCREEN_RECT.top + self.restricted_width, Constant.SCREEN_RECT.height - self.restricted_width)
+        if spawn_buffer:
+            x = random.randint(Constant.SCREEN_RECT.left + self.restricted_width, Constant.SCREEN_RECT.width - self.restricted_width)
+            y = random.randint(Constant.SCREEN_RECT.top + self.restricted_width, Constant.SCREEN_RECT.height - self.restricted_width)
+        
+        else:
+            x = random.randint(Constant.SCREEN_RECT.left, Constant.SCREEN_RECT.width - self.width)
+            y = random.randint(Constant.SCREEN_RECT.top, Constant.SCREEN_RECT.height - self.width)
+        
         self.position = (x,y)
+        self.rect.x = self.position[0]
+        self.rect.y = self.position[1]
+        
+    def __choose_spawn_point(self, x, y):
+
+        self.position = (x,y)
+        self.rect.x = self.position[0]
+        self.rect.y = self.position[1]
+        
+    # def __check_square_spawn(self):
+    #     
+    #     invalid_spawn = True
+    #     while invalid_spawn:
+    #         invalid_spawn = False
+    #         for square in pygame.sprite.spritecollide(self, self.containers[0], False):
+    #             if square == self:
+    #                 print "Self, ignore"
+    #             else:
+    #                 print "Other blocks hit."
+    #                 invalid_spawn = True
+    #                 
+    #                 # Find out where the nearest empty space is
+    #                 if square.rect.x > self.rect.x:
+    #                     pass
+    #                 if square.rect.y > self.rect.y:
+    #                     pass
+    #     
+    #     print "Done checking self-collision with the group."
+            
+        
+    def __init__(self, color="red", spawn_buffer = True):
+        pygame.sprite.Sprite.__init__(self, self.containers)
         
         # Squares are 16x16 and have 5 frames
         # rects = [(17 * x, 0, self.width, self.width) for x in range(0,5)]
@@ -431,11 +470,12 @@ class Square(pygame.sprite.Sprite):
         self.original_image = self.image
         self.image.fill(self.color)
         
-        
-        
         self.rect = self.image.get_rect()
-        self.rect.x = self.position[0]
-        self.rect.y = self.position[1]
+        
+        self.__choose_random_spawn_point(spawn_buffer)
+        
+        
+        # self.__check_square_spawn()
         
         # self.mask = pygame.mask.from_surface(self.image)
         
@@ -465,17 +505,58 @@ class Square(pygame.sprite.Sprite):
         # Get where the paint crosses the square
         intersect_rect = paint.rect.clip(self.rect)
         
-        print "Intersect: " + str(intersect_rect.center)
-        print "dir: " + str(paint.direction)
-        print "square pos: " + str(self.rect.center)
-        print "paint pos: " + str(paint.rect.center)
+        print "Intersection: " + str(intersect_rect)
+        #         print "dir: " + str(paint.direction)
+        #         print "square pos: " + str(self.rect.center)
+        #         print "paint pos: " + str(paint.rect.center)
         
         # Point(intersect_rect.center)
         
         # Cut the square at the line.
         
+        if paint.direction.equals(Constant.UP):
+            # Decide which side of the square to cut
+            if intersect_rect.midtop <= self.rect.midbottom:
+                print "Cut off the left."
+                self.__split_edge_left_up(intersect_rect, paint.size)
+            else:
+                pass
+            
+        elif paint.direction.equals(Constant.DOWN):
+            pass
+        elif paint.direction.equals(Constant.LEFT):
+            pass
+        elif paint.direction.equals(Constant.RIGHT):
+            pass
+            
+    def __split_edge_left_up(self, intersect_rect, line_width):
+        
+        self_at_zero = self.rect.copy()
+        intersect_at_zero = intersect_rect.copy()
+        self_at_zero.topleft = (0,0)
+        intersect_at_zero.topleft = (0,0)
+        print "SELF AT ZERO : INTERSECT_AT_ZERO"
+        print self_at_zero
+        print intersect_at_zero
+        
+        new_width = self_at_zero.width - intersect_at_zero.midtop[0] - line_width/2
         
         
+        print new_width
+        
+        print "NEW RECT : NEW RECT AFTER MOVE : INTERSECT_RECT"
+        new_rect = pygame.Rect(0, 0, new_width, self.rect.height)
+        print new_rect
+        new_rect.left = intersect_rect.right - 1
+        new_rect.bottom = intersect_rect.top # this MOVES the bottom, so the entire rectangle's position moves with it.
+        
+        print new_rect
+        print intersect_rect
+        # print intersect_rect.midtop
+        
+        self.image = pygame.Surface([new_rect.width, new_rect.height])
+        self.image.fill(self.color)
+        self.rect = new_rect
         
     def update(self):
         self.__grow()

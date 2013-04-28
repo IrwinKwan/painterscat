@@ -154,3 +154,24 @@ __2013-04-27	19:01:34__	Stopping for dinner.
 __2013-04-27	19:41:43__	Programming in the car!
 
 __2013-04-27	19:42:00__	I want to work on the "cut" behavior of the lines on the squares.
+
+__2013-04-27	22:26:04__	Okay I skipped the Cut behavior for now. The cat now animates.
+
+    self.frame = pygame.time.get_ticks()
+    self.image = self.images[self.frame//self.animation_cycle % 2]
+
+where "2" is the number of frames available. Probably would be better to use "len(self.images)".
+
+__2013-04-27	23:07:32__	Added code to ensure that the cat animates properly on all four sides of the grid. This was a lot of manual checks for conditions.
+
+In general though I just had to remember that the cat only has two facing sides: left, and right, and depending on where the mouse moved and what wall he was on, the cat would face left or right (and the rotation would take care of the rest).
+
+So for example, if he's on the LEFT wall, then moving up = "direction left" and down is "direction right". So you just have to set the LEFT image to the second two images in the images array, and the RIGHT image to the first two images in the images array.
+
+Having a library for these kinds of 2D transformations would help me save a lot of time in a later version of game dev.
+
+__2013-04-28	07:33:22__	I did a lot of work last night (until about 1 AM) trying to do the square splitting code. There are eight cases I'm going to have to work with and I don't know enough about computational geometry to make this work easily in PyGame. I suspect the secret would deal with matrix work and transforms, OpenGL style.
+
+__2013-04-28	07:34:49__	For now, move onto something more pertinent, and also important: not having things spawn on top of each other. This could be REALLY slow code though if I'm writing it from scratch.
+
+__2013-04-28	10:06:42__	Did music and new sound effects in OGG format. It's very rudimentary and not creative music. Orchestral, especially minimalist orchestral, isn't really my thing. True minimalism might have been a little more eccentric likely... but who knows.

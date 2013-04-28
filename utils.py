@@ -90,3 +90,9 @@ class Asset(object):
             print ('Cannot load sound: %s' % fullname)
             raise SystemExit(str(geterror()))
         return sound
+    
+    @classmethod
+    def play_music(cls, name):    
+        music = os.path.join(Asset.sounds_dir, name)
+        pygame.mixer.music.load(music)
+        pygame.mixer.music.play(-1)

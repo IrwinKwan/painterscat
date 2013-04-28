@@ -43,25 +43,34 @@ import messages
 
 def load_staccato_sounds():
     staccatos = []
-    staccatos.append(Asset.load_sound('staccato-Bb.wav'))
-    staccatos.append(Asset.load_sound('staccato-D.wav'))
-    staccatos.append(Asset.load_sound('staccato-F.wav'))
-    staccatos.append(Asset.load_sound('staccato-Bb-plus.wav'))
+    staccatos.append(Asset.load_sound('staccato-Bb.ogg'))
+    staccatos.append(Asset.load_sound('staccato-D.ogg'))
+    staccatos.append(Asset.load_sound('staccato-F.ogg'))
+    staccatos.append(Asset.load_sound('staccato-Bb-plus.ogg'))
     
     return staccatos
 
 def load_paint_sounds():
     p = []
-    p.append(Asset.load_sound('pizzicato-Bb.wav'))
-    p.append(Asset.load_sound('pizzicato-Bb-plus.wav'))
-    p.append(Asset.load_sound('pizzicato-C.wav'))
-    p.append(Asset.load_sound('pizzicato-D.wav'))
-    p.append(Asset.load_sound('pizzicato-Eb.wav'))
-    # p.append(Asset.load_sound('pizzicato-F.wav'))
-    p.append(Asset.load_sound('pizzicato-G.wav'))
+    p.append(Asset.load_sound('pizzicato-Bb.ogg'))
+    p.append(Asset.load_sound('pizzicato-Bb-plus.ogg'))
+    p.append(Asset.load_sound('pizzicato-C.ogg'))
+    p.append(Asset.load_sound('pizzicato-D.ogg'))
+    p.append(Asset.load_sound('pizzicato-Eb.ogg'))
+    # p.append(Asset.load_sound('pizzicato-F.ogg'))
+    p.append(Asset.load_sound('pizzicato-G.ogg'))
 
     return p
-        
+
+def choose_color(green_allowed):
+    rcolor = Square.colors[0]
+    if not green_allowed:
+        rcolor = Square.colors[ random.randint(0, len(Square.colors) - 2) ]
+    else:
+        rcolor = random.choice(Square.colors)
+            
+    return rcolor
+    
 def create_background(screen):
     return walls.Walls()
 
@@ -194,7 +203,7 @@ def main(winstyle = 0):
     #     creditsMsg = messages.TitleMessage("credits.png", (Constant.SCREEN_RECT.width / 2, 550))
     #     background.blit(creditsMsg.image, creditsMsg.rect)
     
-    
+    Asset.play_music("introduction.ogg")
     
     on_title = True
     while on_title:
@@ -205,16 +214,17 @@ def main(winstyle = 0):
         elif event.type == MOUSEBUTTONDOWN or (event.type == KEYDOWN and event.key == K_SPACE):
             on_title = False
                 
+    pygame.mixer.music.fadeout(1000)
     pygame.event.clear()
-    
     keystate = pygame.key.get_pressed()
-    
     pygame.event.wait()
+    
     
     staccato_sounds = load_staccato_sounds()
     paint_sounds = load_paint_sounds()
-    meow_sound = Asset.load_sound("meow.wav")
+    meow_sound = Asset.load_sound("meow.ogg")
     
+        
     # Redraw the background to wipe the screen.
     levelWalls = walls.Walls(screen)
     background = levelWalls.background
@@ -222,23 +232,22 @@ def main(winstyle = 0):
     pygame.display.flip()
     
     # Game groups
-    paints = pygame.sprite.Group()
-    squares = pygame.sprite.Group()
     deadsquares = pygame.sprite.Group()
-    
+    squares = pygame.sprite.Group()
+    paints = pygame.sprite.Group()
+
     debug = pygame.sprite.Group()
     
     all = pygame.sprite.OrderedUpdates()
     
     
     # Assign groups to each sprite class
-    Cat.containers = all
-    Paint.containers = paints, all
-    Square.containers = squares, all
-    Point.containers = debug, all
     DeadSquare.containers = deadsquares, all
+    Square.containers = squares, all
+    Paint.containers = paints, all
+    Cat.containers = all
     
-    
+    Point.containers = debug, all
     
     angleTextMessage = 0
     angle = 0
@@ -253,6 +262,13 @@ def main(winstyle = 0):
     
     last_respawn = 0
     respawn_time = 0
+    squares_to_spawn = 1
+    green_allowed = False
+    spawn_buffer = True
+    time_to_remove_spawn_buffer = 20000
+    global_paint_cooldown = 800 # ms
+    last_cooldown = 0
+    paint_cooldown = 0
     
     prev_mouse_position = pygame.mouse.get_pos()
     
@@ -275,12 +291,16 @@ def main(winstyle = 0):
         # Player input
         painting = keystate[K_SPACE]
         if painting:
-            random.choice(paint_sounds).play()
-            Paint(cat.position(), cat.facing)
-            statistics["lines"] += 1
+            if global_paint_cooldown - paint_cooldown <= 0:
+                paint_cooldown = 0
+                last_cooldown = pygame.time.get_ticks()
+                random.choice(paint_sounds).play()
+                Paint(cat.position(), cat.facing)
+                statistics["lines"] += 1
         
         cat.move(prev_mouse_position)
         
+        paint_cooldown = pygame.time.get_ticks() - last_cooldown
         respawn_time = pygame.time.get_ticks() - last_respawn
         
         # Spawn a square
@@ -289,29 +309,27 @@ def main(winstyle = 0):
         if len(squares) == 0:
             last_respawn = pygame.time.get_ticks()
             
-            rcolor = random.choice(Square.colors)
-            
-            # Naive way to select a color that's not green
-            while rcolor == "green":
-                rcolor = random.choice(Square.colors)
-                
-            Square(rcolor)
-            statistics["squares_appeared"] += 1
-            
-            if statistics["squares"] > random.randint(3,6):
-                Square(random.choice(Square.colors))
+            for n in range(squares_to_spawn):
+                Square(choose_color(green_allowed), spawn_buffer)
                 statistics["squares_appeared"] += 1
+            
+            if squares_to_spawn > 6:
+                green_allowed = True
+            
+            if statistics["squares"] % random.randint(3,4) == 0:
+                squares_to_spawn += random.randint(1,2)
                 
-            if statistics["squares"] > random.randint(6,10):
-                Square(random.choice(Square.colors))
-                Square(random.choice(Square.colors))
-                statistics["squares_appeared"] += 2
                 
         # Magic Numbers dictating respawn times
-        if respawn_time > random.randint(3000,5000):
+        if respawn_time > random.randint(1500,5000):
             last_respawn = pygame.time.get_ticks()
-            Square()
-            statistics["squares_appeared"] += 1
+            
+            for n in range(random.randint(1,2)):
+                Square(choose_color(green_allowed), spawn_buffer)
+                statistics["squares_appeared"] += 1
+                
+        if pygame.time.get_ticks() - start_time > 20000:
+            spawn_buffer = False
             
             
         # Collision detection.
@@ -329,11 +347,20 @@ def main(winstyle = 0):
             
             for paint in paints:
                 square.cut(paint)
+                
+        # Square hits square. Both stop growing.
+        for square1, square_list in pygame.sprite.groupcollide(squares, squares, False, False).items():
+            for square2 in square_list:
+                if square1 == square2:
+                    pass
+                else:
+                    square1.growth = 0
+                    square2.growth = 0
+            
         
         dirty = all.draw(screen)
         pygame.display.update(dirty)
         
-        # @TODO: Change this back to 60 after testing
         clock.tick(60)
         prev_mouse_position = pygame.mouse.get_pos()
         
@@ -367,13 +394,14 @@ def main(winstyle = 0):
     pygame.display.flip()
     
     # Play the score music
-    
+    Asset.play_music("end.ogg")
     on_score = True
     while on_score:
         event = pygame.event.wait()
         if event.type == QUIT or event.type == KEYDOWN and event.key == K_ESCAPE or event.type == MOUSEBUTTONDOWN or (event.type == KEYDOWN and event.key == K_SPACE):
             on_score = False
             
+    pygame.mixer.music.fadeout(2000)
     pygame.event.clear()
     pygame.quit()
 
