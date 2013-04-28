@@ -24,7 +24,7 @@ class Point(pygame.sprite.Sprite):
 
        # Create an image of the block, and fill it with a color.
        # This could also be an image loaded from the disk.
-       self.image = pygame.Surface([width, height])
+       self.image = pygame.Surface([width, height]).convert()
        
        self.original = self.image
        self.position = position
@@ -70,13 +70,28 @@ class Cat(pygame.sprite.Sprite):
     def position(self):
 
         if self.facing == Constant.UP:
-            return self.rect.bottomright
+            if self.direction == Constant.RIGHT:
+                return self.rect.bottomright
+            elif self.direction == Constant.LEFT:
+                return self.rect.bottomleft
+                
         elif self.facing == Constant.DOWN:
-            return self.rect.topleft
+            if self.direction == Constant.LEFT:
+                return self.rect.topleft
+            elif self.direction == Constant.RIGHT:
+                return self.rect.topright
+                
         elif self.facing == Constant.LEFT:
-            return self.rect.topright
+            if self.direction == Constant.LEFT:
+                return self.rect.bottomright
+            elif self.direction == Constant.RIGHT:
+                return self.rect.topright
+                
         elif self.facing == Constant.RIGHT:
-            return self.rect.bottomleft
+            if self.direction == Constant.LEFT:
+                return self.rect.topleft
+            elif self.direction == Constant.RIGHT:
+                return self.rect.bottomleft
             
     def update(self):
         """Update the image of the cat and the rect."""
@@ -238,6 +253,7 @@ class Paint(pygame.sprite.Sprite):
     color = Color("black")
     speed = 1
     accel = 0.1
+    painting = False
     
     lines_across = 0
     
@@ -285,15 +301,7 @@ class Paint(pygame.sprite.Sprite):
             # Problem!
             raise DirectionException("Paint: You're not up down left or right.")
 
-    def __grow_up(self):
-        if self.rect.height < Constant.SCREEN_SIZE:
-            
-            # This is supposed to grow.
-            self.image = pygame.Surface([self.size, self.size]).convert()
-            self.rect = self.__set_rect()
-            pygame.draw.rect(self.image, self.color, [self.size/2, self.size/2, self.current_width, self.current_height])
-
-    def __grow(self):
+    def __paint_across(self):
         """Defines how the line grows."""
         
         if not self.painting:
@@ -328,54 +336,48 @@ class Paint(pygame.sprite.Sprite):
         
     def update(self):
         self.__set_direction()
-        self.__grow()
+        self.__paint_across()
         
         pygame.draw.rect(self.image, self.color, [self.size/2, self.size/2, self.current_height, self.current_width])
 
+# A dead square needs its own class because
+# it doesn't collide with anything.
 class DeadSquare(pygame.sprite.Sprite):
-    def __init__(self, position, color, height, width):
+    def __init__(self, position, color, width, height):
         pygame.sprite.Sprite.__init__(self, self.containers)
         
-        x = random.randint(Constant.SCREEN_RECT.left + self.restricted_width, Constant.SCREEN_RECT.width - self.restricted_width)
-        y = random.randint(Constant.SCREEN_RECT.top + self.restricted_width, Constant.SCREEN_RECT.height - self.restricted_width)
-        self.position = (x,y)
-        
-        # Squares are 16x16 and have 5 frames
-        # rects = [(17 * x, 0, self.width, self.width) for x in range(0,5)]
-        # statistics["squares_appeared"] += 1
+        self.position = position
         
         if color == "red":
             self.color = random.choice(self.reds)
-            self.growth = 0.1
         elif color == "blue":
             self.color = random.choice(self.blues)
-            self.growth = 0.15
         elif color == "yellow":
             self.color = random.choice(self.yellows)
-            self.growth = 0.20
         elif color == "green":
             self.color = random.choice(self.greens)
-            self.growth = 0.24
         else:
             self.color = self.red_color
-            self.growth = 0.1
             
         # self.images = Asset.load_image("square_" + color + ".png", rects, (120,120,120))
-        self.image = pygame.Surface([self.width, self.width])
+        self.image = pygame.Surface([self.width, self.width]).convert()
         self.original_image = self.image
         self.image.fill(self.color)
-        
-        
         
         self.rect = self.image.get_rect()
         self.rect.x = self.position[0]
         self.rect.y = self.position[1]
+
+        self.width = width
+        self.height = height
         
-        # self.mask = pygame.mask.from_surface(self.image)
-        
-        self.scaled_size = [0, 0, 0, 0]
-        self.scaled_size[0] = int(self.width * self.scale)
-        self.scaled_size[1] = int(self.width * self.scale)
+    def update(self):
+        if self.width <= 0 or self.height <= 0:
+            self.kill()
+            
+        self.image = pygame.transform.scale(self.original_image, (self.width, self.height))
+        self.rect = self.image.get_rect()
+        self.rect.move_ip( (self.position[0] - self.width/2, self.position[1] - self.height/2) )
         
 class Square(pygame.sprite.Sprite):
     """A square. All of the enemies in this game are going to be kind of like
@@ -390,14 +392,19 @@ class Square(pygame.sprite.Sprite):
     yellows = [ Color("#FEFE06"), Color("#fefe06"), Color("#ccbd00")]
     greens = [Color("#00a501"), Color("#00a800"), Color("#05a600")]
     
-    width = 16 # We know the size of the default sprite
+    default_width = 16 # We know the size of the default sprite
+    default_height = 16
     scale = 1.0
     growth = 0.1
     
-    dont_growth_up = False
-    dont_growth_down = False
-    dont_growth_left = False
-    dont_growth_right = False
+    animation_cycle = 240
+    
+    bound_left = False
+    bound_right = False
+    bound_top = False
+    bound_bottom = False
+    
+    bounded_paints = []
     
     restricted_width = 32 # places not to spawn to not kill the player
     
@@ -408,16 +415,16 @@ class Square(pygame.sprite.Sprite):
             y = random.randint(Constant.SCREEN_RECT.top + self.restricted_width, Constant.SCREEN_RECT.height - self.restricted_width)
         
         else:
-            x = random.randint(Constant.SCREEN_RECT.left, Constant.SCREEN_RECT.width - self.width)
-            y = random.randint(Constant.SCREEN_RECT.top, Constant.SCREEN_RECT.height - self.width)
+            x = random.randint(Constant.SCREEN_RECT.left, Constant.SCREEN_RECT.width - self.default_width)
+            y = random.randint(Constant.SCREEN_RECT.top, Constant.SCREEN_RECT.height - self.default_width)
         
-        self.position = (x,y)
+        self.position = [x,y]
         self.rect.x = self.position[0]
         self.rect.y = self.position[1]
         
     def __choose_spawn_point(self, x, y):
 
-        self.position = (x,y)
+        self.position = [x,y]
         self.rect.x = self.position[0]
         self.rect.y = self.position[1]
         
@@ -466,7 +473,7 @@ class Square(pygame.sprite.Sprite):
             self.growth = 0.1
             
         # self.images = Asset.load_image("square_" + color + ".png", rects, (120,120,120))
-        self.image = pygame.Surface([self.width, self.width])
+        self.image = pygame.Surface([self.default_width, self.default_height]).convert()
         self.original_image = self.image
         self.image.fill(self.color)
         
@@ -479,90 +486,142 @@ class Square(pygame.sprite.Sprite):
         
         # self.mask = pygame.mask.from_surface(self.image)
         
-        self.scaled_size = [0, 0, 0, 0]
-        self.scaled_size[0] = int(self.width * self.scale)
-        self.scaled_size[1] = int(self.width * self.scale)
+        self.width = int(self.default_width * self.scale)
+        self.height = int(self.default_height * self.scale)
     
     def __grow(self):
+        
         if self.rect.top <= Constant.SCREEN_RECT.top:
+            self.rect.top = Constant.SCREEN_RECT.top
+            self.growth = 0
+            self.bound_top = True
             return
+            
         elif self.rect.bottom >= Constant.SCREEN_RECT.bottom:
+            self.rect.bottom = Constant.SCREEN_RECT.bottom
+            self.growth = 0
+            self.bound_bottom = True
             return
+            
         elif self.rect.left <= Constant.SCREEN_RECT.left:
+            self.rect.left == Constant.SCREEN_RECT.left
+            self.growth = 0
+            self.bound_left = True
             return
+            
         elif self.rect.right >= Constant.SCREEN_RECT.right:
+            self.rect.right = Constant.SCREEN_RECT.right
+            self.bound_right = True
             return
             
-        self.scale += self.growth
-        self.scaled_size = int(self.width * self.scale)
+        # Don't reset height and width if we're not growing
+        if self.growth > 0:
+            self.scale += self.growth
+            self.width = int(self.default_width * self.scale)
+            self.height = int(self.default_height * self.scale)
+
+    def bounded(self):
+        return self.bound_left and self.bound_right and self.bound_top and self.bound_bottom
+
+    def update(self):
+        self.__grow()
+        
+        self.image = pygame.transform.scale(self.original_image, (self.width, self.height))
+        self.rect = self.image.get_rect()
+        self.rect.move_ip( (self.position[0] - self.width/2, self.position[1] - self.height/2) )
+
+    def __cut_vertical(self, cutter):
+        """Cuts the square vertically on the smaller side."""
+        irect = self.rect.clip(cutter.rect)
+
+        # Calculate width on both sides
+        leftwidth = cutter.rect.left - self.rect.left
+        rightwidth = self.rect.right - cutter.rect.right
+
+        self.width = leftwidth if leftwidth > rightwidth else rightwidth
+
+        if self.width <= 0:
+            self.kill()
+
+        if leftwidth > rightwidth:
+            self.bound_right = True
+            self.position[0] = self.rect.left + self.width/2
+            if self.width % 2 == 1:
+                print "verticalcut odd keep left"
+                self.position[0] += 1
+            else:
+                print "verticalcut even keep left"
+        else:
+            self.bound_left = True
+            self.position[0] = self.rect.right - self.width/2
             
-    def cut(self, paint):
+            
+            if self.width % 2 == 1:
+                print "verticalcut odd keep right"
+                self.position[0] -= 1
+            else:
+                print "verticalcut even keep right"
+                # print "self.rect.right = %d " % self.rect.right
+                # print "cutter.rect.left = %d " % cutter.rect.left
+                print irect
+                # self.position[0] -= 1
+
+
+    def __cut_horizontal(self, cutter):
+        """Cuts the square horizontally on the smaller side."""
+        irect = self.rect.clip(cutter.rect)
+
+        # Calculate height on both sides
+        topheight = cutter.rect.top - self.rect.top
+        bottomheight = self.rect.bottom - cutter.rect.bottom
+
+        self.height = topheight if topheight > bottomheight else bottomheight
+
+        if self.height <= 0:
+            self.kill()
+
+        print "topheight: %d ~~ bottomheight: %d" % (topheight, bottomheight)
+        if topheight > bottomheight:
+            self.bound_bottom = True
+            self.position[1] = self.rect.top + self.height/2
+            
+            if self.height % 2 == 1:
+                print "horizontalcut odd keep top"
+                # self.position[1] -= 1
+            else:
+                print "horizontalcut even keep top"
+                self.position[1] += 1
+                self.width += 1
+        else:
+            self.bound_top = True
+            self.position[1] = self.rect.bottom - self.height/2
+            
+            if self.height % 2 == 1:
+                print "horizontalcut odd keep bottom"
+                self.position[1] -= 1
+            else:
+                print "horizontalcut even keep bottom"
+            
+
+    def cut(self, paint_list):
         """Cuts the square where the paint intersects"""
         
+        print "Cut at time %d" % pygame.time.get_ticks()
         # Stop growing
         self.growth = 0
         
-        # Get where the paint crosses the square
-        intersect_rect = paint.rect.clip(self.rect)
-        
-        print "Intersection: " + str(intersect_rect)
-        #         print "dir: " + str(paint.direction)
-        #         print "square pos: " + str(self.rect.center)
-        #         print "paint pos: " + str(paint.rect.center)
-        
-        # Point(intersect_rect.center)
-        
-        # Cut the square at the line.
-        
-        if paint.direction.equals(Constant.UP):
-            # Decide which side of the square to cut
-            if intersect_rect.midtop <= self.rect.midbottom:
-                print "Cut off the left."
-                self.__split_edge_left_up(intersect_rect, paint.size)
+        for paint in paint_list:
+            
+            if paint.painting:            
+                if paint.direction.equals(Constant.UP) or paint.direction.equals(Constant.DOWN):
+                    self.__cut_vertical(paint)
+                elif paint.direction.equals(Constant.LEFT) or paint.direction.equals(Constant.RIGHT):
+                    self.__cut_horizontal(paint)
             else:
-                pass
-            
-        elif paint.direction.equals(Constant.DOWN):
-            pass
-        elif paint.direction.equals(Constant.LEFT):
-            pass
-        elif paint.direction.equals(Constant.RIGHT):
-            pass
-            
-    def __split_edge_left_up(self, intersect_rect, line_width):
-        
-        self_at_zero = self.rect.copy()
-        intersect_at_zero = intersect_rect.copy()
-        self_at_zero.topleft = (0,0)
-        intersect_at_zero.topleft = (0,0)
-        print "SELF AT ZERO : INTERSECT_AT_ZERO"
-        print self_at_zero
-        print intersect_at_zero
-        
-        new_width = self_at_zero.width - intersect_at_zero.midtop[0] - line_width/2
-        
-        
-        print new_width
-        
-        print "NEW RECT : NEW RECT AFTER MOVE : INTERSECT_RECT"
-        new_rect = pygame.Rect(0, 0, new_width, self.rect.height)
-        print new_rect
-        new_rect.left = intersect_rect.right - 1
-        new_rect.bottom = intersect_rect.top # this MOVES the bottom, so the entire rectangle's position moves with it.
-        
-        print new_rect
-        print intersect_rect
-        # print intersect_rect.midtop
-        
-        self.image = pygame.Surface([new_rect.width, new_rect.height])
-        self.image.fill(self.color)
-        self.rect = new_rect
-        
-    def update(self):
-        self.__grow()
-        self.image = pygame.transform.scale(self.original_image, (self.scaled_size, self.scaled_size))
-        self.rect = self.image.get_rect()
-        self.rect.move_ip( (self.position[0] - self.scaled_size/2, self.position[1] - self.scaled_size/2) )
+                # Kill both the paint and the square
+                self.kill()
+                paint.kill()
+
         
         
         

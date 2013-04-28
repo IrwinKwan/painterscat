@@ -1,3 +1,5 @@
+# This code is from the PyGame Wiki.
+#
 import pygame
 
 def pixel_perfect_collision(obj1, obj2):

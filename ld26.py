@@ -1,10 +1,14 @@
 #!/usr/bin/env python
-"""Ludum Dare 26
+
+"""
+Ludum Dare 26
 A 48 hour compo starting April 26, 2013.
 
 The theme? Minimalism.
 
-Game written by Arcana (2013).
+Game written by Arcana (c 2013).
+
+Code license: GPL
 """
 
 import os
@@ -124,7 +128,7 @@ def score_screen(background, statistics):
         if statistics["time_played"] == 1:
             secs = "second"
             
-        score_string = "Time spent dreaming: %s %s" % (statistics["time_played"], secs)
+        score_string = "Time spent in a dream: %s %s" % (statistics["time_played"], secs)
         text = font.render(score_string, True, (0,0,0))
         textpos = text.get_rect(center=(background.get_width()/2, background.get_height()/2 + 25))
         background.blit(text, textpos)
@@ -134,21 +138,25 @@ def score_screen(background, statistics):
         textpos = text.get_rect(center=(background.get_width()/2, background.get_height()/2 + 50))
         background.blit(text, textpos)
         
-        score_string = "Lines that reached across the canvas: %d" % statistics["lines_end"]
+        score_string = "Lines painted across the canvas: %d" % statistics["lines_end"]
         text = font.render(score_string, True, (0,0,0))
         textpos = text.get_rect(center=(background.get_width()/2, background.get_height()/2 + 75))
         background.blit(text, textpos)
         
-        score_string = "Squares appeared: %d" % statistics["squares_appeared"]
+        score_string = "Rectangular forms dreamt up: %d" % statistics["squares_appeared"]
         text = font.render(score_string, True, (0,0,0))
         textpos = text.get_rect(center=(background.get_width()/2, background.get_height()/2 + 100))
         background.blit(text, textpos)
         
-        score_string = "Squares painted over: %d" % statistics["squares"]
+        score_string = "Rectangular forms painted over: %d" % statistics["squares"]
         text = font.render(score_string, True, (0,0,0))
         textpos = text.get_rect(center=(background.get_width()/2, background.get_height()/2 + 125))
         background.blit(text, textpos)
         
+        score_string = "Rectangular forms bounded: %d" % statistics["squares_bounded"]
+        text = font.render(score_string, True, (0,0,0))
+        textpos = text.get_rect(center=(background.get_width()/2, background.get_height()/2 + 150))
+        background.blit(text, textpos)
 
         
         
@@ -167,7 +175,8 @@ def main(winstyle = 0):
             "lines": 0,
             "lines_end": 0,
             "squares": 0,
-            "squares_appeared": 0
+            "squares_appeared": 0,
+            "squares_bounded": 0
     }
     
     # global stats = Statistics()
@@ -235,10 +244,11 @@ def main(winstyle = 0):
     deadsquares = pygame.sprite.Group()
     squares = pygame.sprite.Group()
     paints = pygame.sprite.Group()
+    boundedsquares = pygame.sprite.Group()
 
     debug = pygame.sprite.Group()
     
-    all = pygame.sprite.OrderedUpdates()
+    all = pygame.sprite.LayeredUpdates()
     
     
     # Assign groups to each sprite class
@@ -281,7 +291,7 @@ def main(winstyle = 0):
         
         for event in pygame.event.get():
             if event.type == QUIT:
-                going = False
+                pygame.quit()
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 going = False
             
@@ -334,23 +344,31 @@ def main(winstyle = 0):
                 
         if pygame.time.get_ticks() - start_time > 20000:
             spawn_buffer = False
+        
+        # Remove all bounded squares and put them into a special group
+        for square in iter(squares):
+            if square.bounded():
+                print "Bounded"
+                statistics["squares_bounded"] += 1
+                squares.remove(square)
+                boundedsquares.add(square)
+                
+        # Collision detection
+        
             
-            
-        # Collision detection.
         # @TODO temporarily disabled while I figure out rect badness
         for square in pygame.sprite.spritecollide(cat, squares, False):
             meow_sound.play()
             # cat.kill()
         
         
-        # Paint hits square. It should be limited to
-        # the end of the paint rather than the body?
-        for square, paints in pygame.sprite.groupcollide(squares, paints, False, False).items():
+        # Paint hits square.
+        for square, paint_list in pygame.sprite.groupcollide(squares, paints, False, False).items():
             statistics["squares"] += 1
             random.choice(staccato_sounds).play()
             
-            for paint in paints:
-                square.cut(paint)
+            square.cut(paint_list)
+            
                 
         # Square hits square. Both stop growing.
         for square1, square_list in pygame.sprite.groupcollide(squares, squares, False, False).items():
@@ -360,6 +378,11 @@ def main(winstyle = 0):
                 else:
                     square1.growth = 0
                     square2.growth = 0
+                    
+                    if square1.rect.contains(square2.rect):
+                            square2.kill()
+                    elif square2.rect.contains(square1.rect):
+                            square1.kill()
             
         
         dirty = all.draw(screen)
@@ -390,7 +413,7 @@ def main(winstyle = 0):
     background = levelWalls.background
     
     # @TODO, this is an inconsistent hack
-    statistics["lines_end"] = Stats.lines_across
+    statistics["lines_end"] = Paint.lines_across
     
     score = score_screen(background, statistics)
     background.blit(score, (0,0))
@@ -402,7 +425,9 @@ def main(winstyle = 0):
     on_score = True
     while on_score:
         event = pygame.event.wait()
-        if event.type == QUIT or event.type == KEYDOWN and event.key == K_ESCAPE or event.type == MOUSEBUTTONDOWN or (event.type == KEYDOWN and event.key == K_SPACE):
+        if event.type == QUIT:
+            pygame.quit()
+        elif event.type == KEYDOWN and event.key == K_ESCAPE or event.type == MOUSEBUTTONDOWN or (event.type == KEYDOWN and event.key == K_SPACE):
             on_score = False
      
     if pygame.mixer:       

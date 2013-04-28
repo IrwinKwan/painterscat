@@ -175,3 +175,17 @@ __2013-04-28	07:33:22__	I did a lot of work last night (until about 1 AM) trying
 __2013-04-28	07:34:49__	For now, move onto something more pertinent, and also important: not having things spawn on top of each other. This could be REALLY slow code though if I'm writing it from scratch.
 
 __2013-04-28	10:06:42__	Did music and new sound effects in OGG format. It's very rudimentary and not creative music. Orchestral, especially minimalist orchestral, isn't really my thing. True minimalism might have been a little more eccentric likely... but who knows.
+
+__2013-04-28	14:13:25__	I've spent the last three to four hours coming up with the computations for cutting the geometry. A lot of it was spent coming up with a test bed to ensure the cuts worked fine, and then I fine-tuned the pixels so there's no whitespace between the lines and the squares.
+
+__2013-04-28	14:14:11__	Some remaining things to do:
+
+- Align the cat's paint to be dependent on where s/he's facing
+- Identify where the audio pops are coming from
+
+- Try to make the game more "fun"?
+
+
+__2013-04-28	16:03:41__	Changing the cat's paint was easy.
+
+__2013-04-28	16:03:46__	I ended up keeping score of "bounded boxes" and it's much more interesting now. However, there are still one-pixel off errors. I also want to make the lines that bound the boxes immutable like the immutable boxes are, so that when you're done you have a Mondrian-like painting.
