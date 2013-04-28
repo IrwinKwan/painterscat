@@ -30,5 +30,5 @@ class Walls:
         for ypos in range(0, self.screen_rect[1], self.image.get_width()):
             self.background.blit(self.image, (self.screen_rect[0] - self.image.get_width(), ypos))
             
-        screen.blit(self.background, (0,0))
+        
         

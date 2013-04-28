@@ -126,3 +126,27 @@ __2013-04-27	12:16:20__	The square successfully grows in size and kind of caps o
 __2013-04-27	12:16:46__	The ideal behaviour, eventually is that the paint will "overwrite" the square and actually cut it such that the half with the least area will disappear (after the line's crossed the square). Theoretically I should also stop the growing of the square as well when the paint contacts the square.
 
 __2013-04-27	12:42:06__	I added in some collision detection and I magically seemed to have gotten a bunch of stuff for free, like the items are destroyed and a new square spawns. Technically if I started keeping score and added a win or lose condition I have an initial game!
+
+__2013-04-27	13:50:50__	What am I going to do now.... the player death works. May be a good time to list some "summary statistics" for when the game is over.
+
+__2013-04-27	14:41:19__	So even after 8 hours of working with PyGame, I still don't seem to truly understand surfaces, as I can't get my image title screen to load up yet.
+
+__2013-04-27	14:57:11__	Apparently, PyGame doesn't like sprites with alpha transparencies. I have to do some extra processing to ensure that those load up properly. I'm going to try to replace the load_one_image with an alpha version before exporting my images again.
+
+__2013-04-27	15:38:18__	Okay I am trying to get some "artistic noises" going on here. If only the firing sounds actually synced up with the collision sounds, I could probably calculate 120 bpm and ensure that sounds fire only on the beats
+
+__2013-04-27	16:20:20__	I've finished both the scoreboard and the title screen. It's time to work on the most important part of the game.... gameplay. Specifically, the collision detection needs work, and then I can begin to implement some intended behaviours like the "painting over" of squares.
+
+__2013-04-27	16:21:14__	Start Collision Detection Fixes now.
+
+__2013-04-27	18:19:26__ This took me the better part of the last two hours to figure out collision detection. I ran into many barriers.
+
+- When I was using my image, the top-left corner was masked to be transparent. **This was the biggest problem I had.** I did not realise this and this was making it seem like the collisions were occurring even though the entire thing was "white" i.e. transparent. LIES
+
+- I learned a little bit about masks in the meantime. I think I'm going to need to use this if I want to do the collision of the paint line and the squares if the square contacts the "back" of a line. But I don't think I'll be able to get that implemented in time. I wasn't able to get the Pixel Perfect drag-and-drop working and I haven't yet tried to work with masking. Still, it seems like it's really easy overall as long as I get my graphics shit together.
+
+- I eventually learned how to do the scale transform correctly. By default, it is locked on the top-left corner and grows to the right and down. You need to do a "rect.move_ip(posx - self.size/2, posy - self.size/2)" to shift the square back so it looks like it's in center.
+
+__2013-04-27	18:23:24__	Moving on to other things... converting the square to different shades of Mondrian colors. Also, different colour squares need to grow at different rates.
+
+__2013-04-27	19:01:34__	Stopping for dinner.

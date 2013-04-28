@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 
 import math
+import random
 
 import spritesheet
 from utils import Asset
@@ -11,16 +12,15 @@ from utils import Constant
 import pvector
 from pvector import PVector
 
-import numpy
-from numpy import random # you know, because ordinary random wasn't good enough or something
 
 class Cat(pygame.sprite.Sprite):
     """A cat. Because this game is going to be about a cat... maybe not"""
     
     images = []
-    facing = PVector(0,0)
+    facing = Constant.UP
     
     # The "direction" in which the cat is walking.
+    # This'll be used to flip the cat around when I get to that point
     direction = None
     
     def __init__(self):
@@ -28,12 +28,10 @@ class Cat(pygame.sprite.Sprite):
         
         self.image = self.images[0]
         self.rect = self.images[0].get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
         
     def position(self):
-        # @NOTE: This doesn't work. Too bad. I probably have to transform the 
-        # rect as well as the surface, or something.
-        # return self.rect.bottomright
-        
+
         if self.facing == Constant.UP:
             return self.rect.bottomright
         elif self.facing == Constant.DOWN:
@@ -148,6 +146,8 @@ class Paint(pygame.sprite.Sprite):
         self.current_height = self.size
         self.current_width = self.size
         
+        
+        
         self.__set_direction()
         
         # self.image.fill(self.color)
@@ -228,75 +228,80 @@ class Square(pygame.sprite.Sprite):
     
     """
     
-    blue_color = Color("#010CA4")
-    red_color = Color("#C80002")
-    yellow_color = Color("#FEFE06")
+    colors = ["blue", "red", "yellow", "green"]
+    
+    blues = [ Color("#010CA4"), Color("#0f3aa3"), Color("#0d3ca6")]
+    reds = [ Color("#C80002"), Color("#dc1301"), Color("#d21801") ]
+    yellows = [ Color("#FEFE06"), Color("#fefe06"), Color("#ccbd00")]
+    greens = [Color("#00a501"), Color("#00a800"), Color("#05a600")]
     
     width = 16 # We know the size of the default sprite
     scale = 1.0
-    growth = 0.2
+    growth = 0.1
+    
+    restricted_width = 32 # places not to spawn to not kill the player
     
     def __init__(self, color="red"):
         pygame.sprite.Sprite.__init__(self, self.containers)
         
-        x = random.randint(Constant.SCREEN_RECT.left, Constant.SCREEN_RECT.width)
-        y = random.randint(Constant.SCREEN_RECT.top, Constant.SCREEN_RECT.height)
-        
+        x = random.randint(Constant.SCREEN_RECT.left + self.restricted_width, Constant.SCREEN_RECT.width - self.restricted_width)
+        y = random.randint(Constant.SCREEN_RECT.top + self.restricted_width, Constant.SCREEN_RECT.height - self.restricted_width)
         self.position = (x,y)
-        # print self.position
         
         # Squares are 16x16 and have 5 frames
-        rects = [(17 * x, 0, self.width, self.width) for x in range(0,5)]
+        # rects = [(17 * x, 0, self.width, self.width) for x in range(0,5)]
         
         if color == "red":
-            pass
+            self.color = random.choice(self.reds)
+            self.growth = 0.1
         elif color == "blue":
-            pass
+            self.color = random.choice(self.blues)
+            self.growth = 0.15
         elif color == "yellow":
-            pass
-        elif color == "white":
-            pass
+            self.color = random.choice(self.yellows)
+            self.growth = 0.20
+        elif color == "green":
+            self.color = random.choice(self.greens)
+            self.growth = 0.24
         else:
-            color = "white"
+            self.color = self.red_color
+            self.growth = 0.1
             
-        self.images = Asset.load_image("square_" + color + ".png", rects, -1)
-        self.image = self.images[0]
+        # self.images = Asset.load_image("square_" + color + ".png", rects, (120,120,120))
+        self.image = pygame.Surface([self.width, self.width])
+        self.original_image = self.image
+        self.image.fill(self.color)
+        
+        
+        
         self.rect = self.image.get_rect()
+        self.rect.x = self.position[0]
+        self.rect.y = self.position[1]
+        
+        # self.mask = pygame.mask.from_surface(self.image)
         
         self.scaled_size = int(self.width * self.scale)
     
     def __grow(self):
         if self.rect.top < Constant.SCREEN_RECT.top:
             return
-            
         elif self.rect.bottom > Constant.SCREEN_RECT.bottom:
             return
-            
         elif self.rect.left < Constant.SCREEN_RECT.left:
             return
-            
         elif self.rect.right > Constant.SCREEN_RECT.right:
             return
             
-        else:
-            self.scale += self.growth
-            self.scaled_size = int(self.width * self.scale)
+        self.scale += self.growth
+        self.scaled_size = int(self.width * self.scale)
             
     def cut(self):
         print "Cut"
         
     def update(self):
         self.__grow()
-        
-        # print "self.scaled_size: " + str(self.scaled_size)
-        
-        self.image = pygame.transform.scale(self.image,
-            (self.scaled_size, self.scaled_size))
+        self.image = pygame.transform.scale(self.original_image, (self.scaled_size, self.scaled_size))
         self.rect = self.image.get_rect()
-        self.rect.center = self.position
-        self.rect = self.rect.clamp(Constant.SCREEN_RECT)
+        self.rect.move_ip( (self.position[0] - self.scaled_size/2, self.position[1] - self.scaled_size/2) )        
         
-        #print "Scale size: " + str(scale_size)
-        #print "Image rect: " + str(self.image.get_rect())
-
         
