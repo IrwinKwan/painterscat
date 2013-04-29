@@ -9,9 +9,9 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          Tree('C:\\Users\\Administrator\\Documents\\painterscat\\data', prefix='\\data'),
+          Tree('data', prefix='data'),
           name=os.path.join('dist', 'painterscat.exe'),
           debug=False,
           strip=None,
           upx=True,
-          console=True )
+          console=False )
