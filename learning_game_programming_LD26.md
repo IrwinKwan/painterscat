@@ -208,3 +208,74 @@ http://stackoverflow.com/questions/5607121/how-do-i-use-py2app
 
 
 __2013-04-28	21:38:46__	It was all submitted a few hours ago. Time to commit the last-minute changes I had to make in order to package it. I'll write up some instructions for py2exe as well as I work on that portion.
+
+__2013-04-28	22:27:56__	Windows Python Executable:
+
+1. Go to the [Installing Windows for Python page.](http://docs.python-guide.org/en/latest/starting/install/win/).
+
+2. Download and install the Python 2.7 MSI (I didn't use the x64 version).
+
+3. Ensure that you set up the Powershell variables
+
+4. Get the ```python-distribute.py``` script.
+
+	* Download it to your folder (ex. C:\Users\Kwan\Administrator\Downloads):
+	* Run Powershell (go to Start Menu and in the search box type "powershell")
+	* Type:
+	
+    cd ~/Downloads
+    python python-distribute.py
+    easy_install pip
+
+5. Go to the [py2exe homepage](http://www.py2exe.org/). On the link to SourceForge, download the appropriate version of py2exe, which is likely the [Python 2.7 win32 version](http://sourceforge.net/projects/py2exe/files/py2exe/0.6.9/py2exe-0.6.9.win32-py2.7.exe/download).
+
+6. 
+
+
+__2013-04-28	23:15:51__	Maybe get binaries from a site like (http://www.lfd.uci.edu/~gohlke/pythonlibs/)? There seems to be an issue with pip install.
+
+Seems you need a compiler for Windows. the GNU alternative is [here] (http://www.mingw.org/) which you should be able to [download here](http://sourceforge.net/projects/mingw/files/latest/download?source=files).
+
+
+__2013-04-28	23:56:25__	You should use the official pygame installer from the pygame web site for Windows. Also, py2exe doesn't appear to have the same issue with import pygame._view that py2app has. Unfortunately the game seems to crash when you get to the score screen on Windows.
+
+__2013-04-29	08:44:47__	After spending about three or four hours at this, I have finally managed to make PyGame/Python with data compile into Windows. Here's the brief rundown.
+
+1. Use PyInstaller. It's more reliable at making Windows EXEs. (I haven't figured out how to make it work in Mac yet).
+
+2. Include these secret lines of code around every file name:
+
+	def resource_path(relative):
+	    if hasattr(sys, "_MEIPASS"):
+	        return os.path.join(sys._MEIPASS, relative)
+	    return os.path.join(relative)
+		
+Example:
+
+	filename = 'freesansbold.ttf'
+	myfontfile = resource_path(os.path.join(data_dir, filename)
+
+3. Include the font file! Don't use ```None``` in the code.
+
+4. When you run pyinstaller, first create the .spec file by running it normally with the --onefile option. Then, go into the spec file, and modify the EXE section to add the following line:
+
+	Tree('C:\\Users\\Administrator\\Documents\\painterscat\\data', prefix='\\data')
+	
+The result should look something like this:
+
+	exe = EXE(pyz,
+	          a.scripts,
+	          a.binaries,
+	          a.zipfiles,
+	          a.datas,
+	          Tree('C:\\Users\\Administrator\\Documents\\painterscat\\data', prefix='\\data'),
+	          name=os.path.join('dist', 'painterscat.exe'),
+	          debug=False,
+	          strip=None,
+	          upx=True,
+	          console=True )
+
+5. Run pyinstaller again. Give the spec file as the argument (ex: ```python C:\pyinstaller\pyinstaller.py --onefile painterscat.spec```)
+
+6. You should have an .EXE in your dist folder ready to go.
+	

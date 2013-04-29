@@ -15,13 +15,12 @@ import os
 import sys
 import math
 
-import numpy
-from numpy import random
-
 import random
 
 import pygame
-import pygame._view
+
+# Uncomment this to get py2app on Mac to work
+# import pygame._view
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -106,7 +105,8 @@ def score_screen(background, statistics):
     background.blit(titleMsg, titleRect)
     
     if pygame.font:
-        font = pygame.font.Font("freesansbold.ttf", 26)
+        fontfile = Asset.resource_path(os.path.join("data", "freesansbold.ttf"))
+        font = pygame.font.Font(fontfile, 26)
         
         secs = "seconds"
         if statistics["time_played"] == 1:
@@ -171,10 +171,10 @@ def main(winstyle = 0):
     
     # global stats = Statistics()
     
-    # winstyle = 0  # |FULLSCREEN
+    winstyle = 0  # |FULLSCREEN
     screen_rect = pygame.Rect(0, 0, Constant.SCREEN_SIZE, Constant.SCREEN_SIZE)
-    # bestdepth = pygame.display.mode_ok(screen_rect.size, winstyle, 32)
-    # screen = pygame.display.set_mode(screen_rect.size, winstyle, bestdepth)
+    bestdepth = pygame.display.mode_ok(screen_rect.size, winstyle, 32)
+    screen = pygame.display.set_mode(screen_rect.size, winstyle, bestdepth)
     screen = pygame.display.set_mode(screen_rect.size)
     pygame.mouse.set_visible(False)
     pygame.display.set_caption("The Painter's Cat")
@@ -417,6 +417,7 @@ def main(winstyle = 0):
 
     meow_sound.fadeout(500)
     
+
     levelWalls = walls.Walls(screen)
     background = levelWalls.background
     
@@ -434,13 +435,13 @@ def main(winstyle = 0):
     while on_score:
         event = pygame.event.wait()
         if event.type == QUIT:
-            pygame.quit()
+            on_score = False
         elif event.type == KEYDOWN and event.key == K_ESCAPE or event.type == MOUSEBUTTONDOWN or (event.type == KEYDOWN and event.key == K_SPACE):
             on_score = False
-     
-    if pygame.mixer:       
+    
+    if pygame.mixer:      
         pygame.mixer.music.fadeout(2000)
-    pygame.event.clear()
+        
     pygame.quit()
 
 if __name__ == '__main__':

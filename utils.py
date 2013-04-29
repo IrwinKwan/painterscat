@@ -1,4 +1,4 @@
-import os
+import os, sys
 import pygame
 from pygame.locals import *
 from pygame.compat import geterror
@@ -28,12 +28,28 @@ class Constant():
 class Asset(object):
     
     # main_dir = os.path.split(os.path.abspath(__file__))[0]
-    images_dir = os.path.join('data')
-    sounds_dir = os.path.join('data')
+    data_dir = os.path.join('data')
 
     @classmethod
+    def resource_path(cls, relative):
+        if hasattr(sys, "_MEIPASS"):
+            return os.path.join(sys._MEIPASS, relative)
+        return os.path.join(relative)
+    
+    @classmethod
+    def load_font(cls,name):
+        fullname = Asset.resource_path(os.path.join(Asset.data_dir, name))
+        font = None
+        try:
+            font = pygame.font.Font(fontfile, 26)
+        except pygame.error:
+            print ('Cannot load font:', fullname)
+            raise SystemExit(str(geterror()))
+        return font
+        
+    @classmethod
     def load_one_image(cls, name, colorkey=None):
-        fullname = os.path.join(Asset.images_dir, name)
+        fullname = Asset.resource_path(os.path.join(Asset.data_dir, name))
         try:
             image = pygame.image.load(fullname)
         except pygame.error:
@@ -48,7 +64,7 @@ class Asset(object):
         
     @classmethod
     def load_one_alpha_image(cls, name, colorkey=None):
-        fullname = os.path.join(Asset.images_dir, name)
+        fullname = Asset.resource_path(os.path.join(Asset.data_dir, name))
         try:
             image = pygame.image.load(fullname)
         except pygame.error:
@@ -66,7 +82,7 @@ class Asset(object):
         if type(name) is not str:
             raise TypeError
             
-        fullname = os.path.join(Asset.images_dir, name)
+        fullname = Asset.resource_path(os.path.join(Asset.data_dir, name))
         ss = spritesheet.spritesheet(fullname)
         images = None
         try:
@@ -83,7 +99,7 @@ class Asset(object):
             def play(self): pass
         if not pygame.mixer or not pygame.mixer.get_init():
             return NoneSound()
-        fullname = os.path.join(Asset.sounds_dir, name)
+        fullname = Asset.resource_path(os.path.join(Asset.data_dir, name))
         try:
             sound = pygame.mixer.Sound(fullname)
         except pygame.error:
@@ -93,6 +109,7 @@ class Asset(object):
     
     @classmethod
     def play_music(cls, name):    
-        music = os.path.join(Asset.sounds_dir, name)
+        music = Asset.resource_path(os.path.join(Asset.data_dir, name))
         pygame.mixer.music.load(music)
         pygame.mixer.music.play(-1)
+        
