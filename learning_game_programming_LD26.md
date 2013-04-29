@@ -189,3 +189,9 @@ __2013-04-28	14:14:11__	Some remaining things to do:
 __2013-04-28	16:03:41__	Changing the cat's paint was easy.
 
 __2013-04-28	16:03:46__	I ended up keeping score of "bounded boxes" and it's much more interesting now. However, there are still one-pixel off errors. I also want to make the lines that bound the boxes immutable like the immutable boxes are, so that when you're done you have a Mondrian-like painting.
+
+__2013-04-28	17:08:36__	After spending a lot of time with rects and inflate.... inflate increases by an OFFSET. So inflate and inflate_ip increase or decrease with that value.... it's not a NEW width or height as in transform. :( This is a lesson learned from bad API documentation where statements are vague or depend on other areas.
+
+__2013-04-28	17:46:55__	Figured out that game wasn't loading a sound file. No exception thrown, just a pop. So I added the file in.
+
+__2013-04-28	17:47:12__	Need to compile a binary... this might be tight.

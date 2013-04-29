@@ -61,7 +61,7 @@ def load_paint_sounds():
     p.append(Asset.load_sound('pizzicato-C.ogg'))
     p.append(Asset.load_sound('pizzicato-D.ogg'))
     p.append(Asset.load_sound('pizzicato-Eb.ogg'))
-    # p.append(Asset.load_sound('pizzicato-F.ogg'))
+    p.append(Asset.load_sound('pizzicato-F.ogg'))
     p.append(Asset.load_sound('pizzicato-G.ogg'))
 
     return p
@@ -79,20 +79,6 @@ def create_background(screen):
     return walls.Walls()
 
 def mouse_angle(background, pos):
-    # center = PVector(background.get_width() / 2, background.get_height() / 2)
-    # mouse = PVector(pos[0], pos[1])
-    # 
-    # mouse.sub(center)
-    # center.sub(center)
-    # center.x = -1
-    # 
-    # 
-    # print center
-    # print mouse
-    # print center.angle_between(mouse)
-    # 
-    # return center.angle_between(mouse)
-    
     a = math.atan2(background.get_width()/2 - pos[0], pos[1] - background.get_height()/2) 
     return a
 
@@ -158,11 +144,16 @@ def score_screen(background, statistics):
         textpos = text.get_rect(center=(background.get_width()/2, background.get_height()/2 + 150))
         background.blit(text, textpos)
 
+        score_string = "Rectangular form bonus! %d" % statistics["squares_erased"]
+        text = font.render(score_string, True, (0,0,0))
+        textpos = text.get_rect(center=(background.get_width()/2, background.get_height()/2 + 175))
+        background.blit(text, textpos)
         
         
     return background
        
 def main(winstyle = 0):
+    pygame.mixer.quit()
     pygame.init()
     if not pygame.font:
         print ('Warning, fonts disabled')
@@ -176,6 +167,7 @@ def main(winstyle = 0):
             "lines_end": 0,
             "squares": 0,
             "squares_appeared": 0,
+            "squares_erased": 0,
             "squares_bounded": 0
     }
     
@@ -212,7 +204,12 @@ def main(winstyle = 0):
     #     creditsMsg = messages.TitleMessage("credits.png", (Constant.SCREEN_RECT.width / 2, 550))
     #     background.blit(creditsMsg.image, creditsMsg.rect)
     
+    
+    # pygame.mixer.init(44100, -16, 2, 65535)
+    pygame.mixer.init(44100, -16, 2, 1024)
+    
     Asset.play_music("introduction.ogg")
+    
     
     on_title = True
     while on_title:
@@ -232,7 +229,7 @@ def main(winstyle = 0):
     staccato_sounds = load_staccato_sounds()
     paint_sounds = load_paint_sounds()
     meow_sound = Asset.load_sound("meow.ogg")
-    
+    hit_sound = Asset.load_sound("big_hit.ogg")
         
     # Redraw the background to wipe the screen.
     levelWalls = walls.Walls(screen)
@@ -270,7 +267,6 @@ def main(winstyle = 0):
     
     # Initialize starting sprites
     cat = Cat()
-    # Square()
     
     start_time = pygame.time.get_ticks()
     
@@ -283,7 +279,7 @@ def main(winstyle = 0):
     global_paint_cooldown = 800 # ms
     last_cooldown = 0
     paint_cooldown = 0
-    
+    old_paint_value = 0
     prev_mouse_position = pygame.mouse.get_pos()
     
     going = True
@@ -317,7 +313,8 @@ def main(winstyle = 0):
         paint_cooldown = pygame.time.get_ticks() - last_cooldown
         respawn_time = pygame.time.get_ticks() - last_respawn
         
-        # Spawn a square
+        # Spawn squares
+        
         # @TODO I want to eventually do "levels" and wipe the screen
         # but we'll see if I can actually get that far
         if len(squares) == 0:
@@ -346,12 +343,26 @@ def main(winstyle = 0):
             spawn_buffer = False
         
         # Remove all bounded squares and put them into a special group
-        for square in iter(squares):
-            if square.bounded():
-                print "Bounded"
+        for sq in iter(squares):
+            if sq.bounded():
+                
                 statistics["squares_bounded"] += 1
-                squares.remove(square)
-                boundedsquares.add(square)
+                squares.remove(sq)
+                boundedsquares.add(sq)
+                
+                bounding_paints = sq.get_bounding_paints(paints)
+                
+                for bounding in bounding_paints:
+                    paints.remove(bounding)
+                    boundedsquares.add(bounding)
+                
+                for p in paints:
+                    p.kill()
+                for s in squares:
+                    s.kill()
+                    statistics["squares_erased"] += 1
+                    
+                hit_sound.play()
                 
         # Collision detection
         
@@ -359,14 +370,13 @@ def main(winstyle = 0):
         # @TODO temporarily disabled while I figure out rect badness
         for square in pygame.sprite.spritecollide(cat, squares, False):
             meow_sound.play()
-            # cat.kill()
+            cat.kill()
         
         
         # Paint hits square.
         for square, paint_list in pygame.sprite.groupcollide(squares, paints, False, False).items():
             statistics["squares"] += 1
             random.choice(staccato_sounds).play()
-            
             square.cut(paint_list)
             
                 

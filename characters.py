@@ -18,30 +18,19 @@ class Point(pygame.sprite.Sprite):
 
     # Constructor. Pass in the color of the block,
     # and its x and y position
-    def __init__(self, position, color = Color("magenta"), width = 4, height = 4):
-       # Call the parent class (Sprite) constructor
-       pygame.sprite.Sprite.__init__(self, self.containers)
+    def __init__(self, position, color = Color("magenta"), width = 3, height = 3):
+        # Call the parent class (Sprite) constructor
+        pygame.sprite.Sprite.__init__(self, self.containers)
 
-       # Create an image of the block, and fill it with a color.
-       # This could also be an image loaded from the disk.
-       self.image = pygame.Surface([width, height]).convert()
-       
-       self.original = self.image
-       self.position = position
-       # Fetch the rectangle object that has the dimensions of the image
-       # Update the position of this object by setting the values of rect.x and rect.y
-       self.rect = self.image.get_rect()
-       self.rect.x = self.position[0]
-       self.rect.y = self.position[1]
-       self.size = width
-       
-       pygame.draw.ellipse(self.image, color, self.rect)
-       
-    def update(self):
-        self.image = pygame.transform.scale(self.original, (self.size, self.size))
+        # Create an image of the block, and fill it with a color.
+        # This could also be an image loaded from the disk.
+        self.image = pygame.Surface([width, height])
+        self.image.fill(color)
+
+        # Fetch the rectangle object that has the dimensions of the image
+        # Update the position of this object by setting the values of rect.x and rect.y
         self.rect = self.image.get_rect()
-        self.rect.move_ip( (self.position[0] - self.size/2, self.position[1] - self.size/2) )
-        # self.rect.clamp_ip(pygame.Rect(0,0,SCREEN_SIZE,SCREEN_SIZE))
+        self.rect.center = position
 
 
 class Cat(pygame.sprite.Sprite):
@@ -523,6 +512,14 @@ class Square(pygame.sprite.Sprite):
     def bounded(self):
         return self.bound_left and self.bound_right and self.bound_top and self.bound_bottom
 
+    def get_bounding_paints(self, paint_group):
+        if not self.bounded:
+            return []
+        
+        self.rect.inflate_ip( 8, 8 )
+        
+        return pygame.sprite.spritecollide(self, paint_group, False)
+
     def update(self):
         self.__grow()
         
@@ -547,23 +544,25 @@ class Square(pygame.sprite.Sprite):
             self.bound_right = True
             self.position[0] = self.rect.left + self.width/2
             if self.width % 2 == 1:
-                print "verticalcut odd keep left"
+                #print "verticalcut odd keep left"
                 self.position[0] += 1
             else:
-                print "verticalcut even keep left"
+                pass
+                #print "verticalcut even keep left"
         else:
             self.bound_left = True
             self.position[0] = self.rect.right - self.width/2
             
             
             if self.width % 2 == 1:
-                print "verticalcut odd keep right"
+                #print "verticalcut odd keep right"
                 self.position[0] -= 1
             else:
-                print "verticalcut even keep right"
+                pass
+                #print "verticalcut even keep right"
                 # print "self.rect.right = %d " % self.rect.right
                 # print "cutter.rect.left = %d " % cutter.rect.left
-                print irect
+                #print irect
                 # self.position[0] -= 1
 
 
@@ -580,16 +579,17 @@ class Square(pygame.sprite.Sprite):
         if self.height <= 0:
             self.kill()
 
-        print "topheight: %d ~~ bottomheight: %d" % (topheight, bottomheight)
+        #print "topheight: %d ~~ bottomheight: %d" % (topheight, bottomheight)
         if topheight > bottomheight:
             self.bound_bottom = True
             self.position[1] = self.rect.top + self.height/2
             
             if self.height % 2 == 1:
-                print "horizontalcut odd keep top"
+                pass
+                #print "horizontalcut odd keep top"
                 # self.position[1] -= 1
             else:
-                print "horizontalcut even keep top"
+                #print "horizontalcut even keep top"
                 self.position[1] += 1
                 self.width += 1
         else:
@@ -597,16 +597,17 @@ class Square(pygame.sprite.Sprite):
             self.position[1] = self.rect.bottom - self.height/2
             
             if self.height % 2 == 1:
-                print "horizontalcut odd keep bottom"
+                #print "horizontalcut odd keep bottom"
                 self.position[1] -= 1
             else:
-                print "horizontalcut even keep bottom"
+                pass
+                #print "horizontalcut even keep bottom"
             
 
     def cut(self, paint_list):
         """Cuts the square where the paint intersects"""
         
-        print "Cut at time %d" % pygame.time.get_ticks()
+        # print "Cut at time %d" % pygame.time.get_ticks()
         # Stop growing
         self.growth = 0
         
@@ -620,7 +621,7 @@ class Square(pygame.sprite.Sprite):
             else:
                 # Kill both the paint and the square
                 self.kill()
-                paint.kill()
+                # paint.kill()
 
         
         
