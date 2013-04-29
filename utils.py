@@ -27,9 +27,9 @@ class Constant():
     
 class Asset(object):
     
-    main_dir = os.path.split(os.path.abspath(__file__))[0]
-    images_dir = os.path.join(main_dir, 'images')
-    sounds_dir = os.path.join(main_dir, 'sounds')
+    # main_dir = os.path.split(os.path.abspath(__file__))[0]
+    images_dir = os.path.join('data')
+    sounds_dir = os.path.join('data')
 
     @classmethod
     def load_one_image(cls, name, colorkey=None):

@@ -195,3 +195,16 @@ __2013-04-28	17:08:36__	After spending a lot of time with rects and inflate.... 
 __2013-04-28	17:46:55__	Figured out that game wasn't loading a sound file. No exception thrown, just a pop. So I added the file in.
 
 __2013-04-28	17:47:12__	Need to compile a binary... this might be tight.
+
+__2013-04-28	18:51:56__	Links to py2app:
+
+Really good link here
+
+http://stackoverflow.com/questions/5201133/py2app-built-app-displays-error-pygame-macosx-import-failed-on-other-machines
+
+OK but less useful
+
+http://stackoverflow.com/questions/5607121/how-do-i-use-py2app
+
+
+__2013-04-28	21:38:46__	It was all submitted a few hours ago. Time to commit the last-minute changes I had to make in order to package it. I'll write up some instructions for py2exe as well as I work on that portion.

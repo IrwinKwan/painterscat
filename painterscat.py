@@ -21,11 +21,11 @@ from numpy import random
 import random
 
 import pygame
+import pygame._view
 from pygame.locals import *
 from pygame.compat import geterror
 
 from pvector import PVector
-from pixelperfectcollision import pixel_perfect_collision
 
 from utils import Asset
 from utils import Constant
@@ -59,9 +59,7 @@ def load_paint_sounds():
     p.append(Asset.load_sound('pizzicato-Bb.ogg'))
     p.append(Asset.load_sound('pizzicato-Bb-plus.ogg'))
     p.append(Asset.load_sound('pizzicato-C.ogg'))
-    p.append(Asset.load_sound('pizzicato-D.ogg'))
     p.append(Asset.load_sound('pizzicato-Eb.ogg'))
-    p.append(Asset.load_sound('pizzicato-F.ogg'))
     p.append(Asset.load_sound('pizzicato-G.ogg'))
 
     return p
@@ -108,7 +106,7 @@ def score_screen(background, statistics):
     background.blit(titleMsg, titleRect)
     
     if pygame.font:
-        font = pygame.font.Font(None, 26)
+        font = pygame.font.Font("freesansbold.ttf", 26)
         
         secs = "seconds"
         if statistics["time_played"] == 1:
@@ -173,11 +171,11 @@ def main(winstyle = 0):
     
     # global stats = Statistics()
     
-    winstyle = 0  # |FULLSCREEN
+    # winstyle = 0  # |FULLSCREEN
     screen_rect = pygame.Rect(0, 0, Constant.SCREEN_SIZE, Constant.SCREEN_SIZE)
-    bestdepth = pygame.display.mode_ok(screen_rect.size, winstyle, 32)
-    screen = pygame.display.set_mode(screen_rect.size, winstyle, bestdepth)
-    
+    # bestdepth = pygame.display.mode_ok(screen_rect.size, winstyle, 32)
+    # screen = pygame.display.set_mode(screen_rect.size, winstyle, bestdepth)
+    screen = pygame.display.set_mode(screen_rect.size)
     pygame.mouse.set_visible(False)
     pygame.display.set_caption("The Painter's Cat")
     
