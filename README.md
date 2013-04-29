@@ -1,6 +1,8 @@
 Painter's Cat
 =============
 
+Built in 48 hours as an entry for Ludum Dare 26. [Check out my entry here](http://www.ludumdare.com/compo/ludum-dare-26/22457/?action=preview&uid=22457)
+
 > You're a cat. This is your dream.
 > 
 > Move with the mouse.
@@ -12,5 +14,5 @@ It was a great experience. I kept a log in the "learning_game_programming_LD26.m
 
 The code is very, very, very messy at the moment - this is because I did the game in 48 hours and because this is my first significant game project. There's a bunch of dead code and just plain tons of disorganized stuff all over the place. When I take my time to program it really doesn't end up looking like this at all.
 
-Check out my entry here: http://www.ludumdare.com/compo/ludum-dare-26/22457/?action=preview&uid=22457
+
 
