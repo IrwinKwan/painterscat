@@ -147,6 +147,18 @@ def score_screen(background, statistics):
         textpos = text.get_rect(center=(background.get_width()/2, background.get_height()/2 + 175))
         background.blit(text, textpos)
         
+        font = pygame.font.Font(fontfile, 16)
+        
+        score_string = "Press Space to dream again."
+        text = font.render(score_string, True, (0,0,0))
+        textpos = text.get_rect(center=(background.get_width()/2, background.get_height()/2 + 240))
+        background.blit(text, textpos)
+        
+        score_string = "Press Escape to return to the waking world."
+        text = font.render(score_string, True, (0,0,0))
+        textpos = text.get_rect(center=(background.get_width()/2, background.get_height()/2 + 258))
+        background.blit(text, textpos)
+        
         
     return background
        
@@ -159,15 +171,7 @@ def main(winstyle = 0):
     if not pygame.mixer:
         print ('Warning, sound disabled')
         
-    statistics = {
-            "time_played": 0,
-            "lines": 0,
-            "lines_end": 0,
-            "squares": 0,
-            "squares_appeared": 0,
-            "squares_erased": 0,
-            "squares_bounded": 0
-    }
+
     
     # global stats = Statistics()
     
@@ -228,219 +232,241 @@ def main(winstyle = 0):
     paint_sounds = load_paint_sounds()
     meow_sound = Asset.load_sound("meow.ogg")
     hit_sound = Asset.load_sound("big_hit.ogg")
-        
-    # Redraw the background to wipe the screen.
-    levelWalls = walls.Walls(screen)
-    background = levelWalls.background
-    screen.blit(background, (0,0))
-    pygame.display.flip()
     
-    # Game groups
-    deadsquares = pygame.sprite.Group()
-    squares = pygame.sprite.Group()
-    paints = pygame.sprite.Group()
-    boundedsquares = pygame.sprite.Group()
+    playing = True
+    while playing:    
+        # Redraw the background to wipe the screen.
+        levelWalls = walls.Walls(screen)
+        background = levelWalls.background
+        screen.blit(background, (0,0))
+        pygame.display.flip()
+    
+        # Game groups
+        deadsquares = pygame.sprite.Group()
+        squares = pygame.sprite.Group()
+        paints = pygame.sprite.Group()
+        boundedsquares = pygame.sprite.Group()
 
-    debug = pygame.sprite.Group()
+        debug = pygame.sprite.Group()
     
-    all = pygame.sprite.LayeredUpdates()
+        all = pygame.sprite.LayeredUpdates()
     
     
-    # Assign groups to each sprite class
-    DeadSquare.containers = deadsquares, all
-    Square.containers = squares, all
-    Paint.containers = paints, all
-    Cat.containers = all
+        # Assign groups to each sprite class
+        DeadSquare.containers = deadsquares, all
+        Square.containers = squares, all
+        Paint.containers = paints, all
+        Cat.containers = all
     
-    Point.containers = debug, all
+        Point.containers = debug, all
     
-    angleTextMessage = 0
-    angle = 0
+        angleTextMessage = 0
+        angle = 0
     
-    Asset.play_music('game.ogg')
-    if pygame.mixer:
-        pygame.mixer.music.set_volume(0.5)
-        
-    clock = pygame.time.Clock()
+        clock = pygame.time.Clock()
     
-    # Initialize starting sprites
-    cat = Cat()
-    
-    start_time = pygame.time.get_ticks()
-    
-    last_respawn = 0
-    respawn_time = 0
-    squares_to_spawn = 1
-    green_allowed = False
-    spawn_buffer = True
-    time_to_remove_spawn_buffer = 20000
-    global_paint_cooldown = 800 # ms
-    last_cooldown = 0
-    paint_cooldown = 0
-    old_paint_value = 0
-    prev_mouse_position = pygame.mouse.get_pos()
-    
-    going = True
-    while cat.alive() and going == True:
-        
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-            elif event.type == KEYDOWN and event.key == K_ESCAPE:
-                going = False
-            
-            #elif event.type == MOUSEBUTTONDOWN:
-            #    laser_sounds[random.randint(0,1)].play()
-        keystate = pygame.key.get_pressed()
 
-        all.clear(screen, background)
-        all.update()
         
-        # Player input
-        painting = keystate[K_SPACE]
-        if painting:
-            if global_paint_cooldown - paint_cooldown <= 0:
-                paint_cooldown = 0
-                last_cooldown = pygame.time.get_ticks()
-                random.choice(paint_sounds).play()
-                Paint(cat.position(), cat.facing)
-                statistics["lines"] += 1
+        Asset.play_music('game.ogg')
+        if pygame.mixer:
+            pygame.mixer.music.set_volume(0.5)
         
-        cat.move(prev_mouse_position)
-        
-        paint_cooldown = pygame.time.get_ticks() - last_cooldown
-        respawn_time = pygame.time.get_ticks() - last_respawn
-        
-        # Spawn squares
-        
-        # @TODO I want to eventually do "levels" and wipe the screen
-        # but we'll see if I can actually get that far
-        if len(squares) == 0:
-            last_respawn = pygame.time.get_ticks()
-            
-            for n in range(squares_to_spawn):
-                Square(choose_color(green_allowed), spawn_buffer)
-                statistics["squares_appeared"] += 1
-            
-            if squares_to_spawn > 6:
-                green_allowed = True
-            
-            if statistics["squares"] % random.randint(3,4) == 0:
-                squares_to_spawn += random.randint(1,2)
-                
-                
-        # Magic Numbers dictating respawn times
-        if respawn_time > random.randint(1500,5000):
-            last_respawn = pygame.time.get_ticks()
-            
-            for n in range(random.randint(1,2)):
-                Square(choose_color(green_allowed), spawn_buffer)
-                statistics["squares_appeared"] += 1
-                
-        if pygame.time.get_ticks() - start_time > 20000:
-            spawn_buffer = False
-        
-        # Remove all bounded squares and put them into a special group
-        for sq in iter(squares):
-            if sq.bounded():
-                
-                statistics["squares_bounded"] += 1
-                squares.remove(sq)
-                boundedsquares.add(sq)
-                
-                bounding_paints = sq.get_bounding_paints(paints)
-                
-                for bounding in bounding_paints:
-                    paints.remove(bounding)
-                    boundedsquares.add(bounding)
-                
-                for p in paints:
-                    p.kill()
-                for s in squares:
-                    s.kill()
-                    statistics["squares_erased"] += 1
-                    
-                hit_sound.play()
-                
-        # Collision detection
-        
-            
-        # @TODO temporarily disabled while I figure out rect badness
-        for square in pygame.sprite.spritecollide(cat, squares, False):
-            meow_sound.play()
-            cat.kill()
-        
-        
-        # Paint hits square.
-        for square, paint_list in pygame.sprite.groupcollide(squares, paints, False, False).items():
-            statistics["squares"] += 1
-            random.choice(staccato_sounds).play()
-            square.cut(paint_list)
-            
-                
-        # Square hits square. Both stop growing.
-        for square1, square_list in pygame.sprite.groupcollide(squares, squares, False, False).items():
-            for square2 in square_list:
-                if square1 == square2:
-                    pass
-                else:
-                    square1.growth = 0
-                    square2.growth = 0
-                    
-                    if square1.rect.contains(square2.rect):
-                            square2.kill()
-                    elif square2.rect.contains(square1.rect):
-                            square1.kill()
-            
-        
-        dirty = all.draw(screen)
-        pygame.display.update(dirty)
-        
-        clock.tick(60)
+    
+    
+        # Initialize starting sprites
+        cat = Cat()    
+    
+        start_time = pygame.time.get_ticks()
+    
+        statistics = {
+                "time_played": 0,
+                "lines": 0,
+                "lines_end": 0,
+                "squares": 0,
+                "squares_appeared": 0,
+                "squares_erased": 0,
+                "squares_bounded": 0
+        }
+    
+        last_respawn = 0
+        respawn_time = 0
+        squares_to_spawn = 1
+        green_allowed = False
+        spawn_buffer = True
+        time_to_remove_spawn_buffer = 20000
+        global_paint_cooldown = 800 # ms
+        last_cooldown = 0
+        paint_cooldown = 0
+        old_paint_value = 0
         prev_mouse_position = pygame.mouse.get_pos()
+    
+        going = True
+        while cat.alive() and going == True:
         
-    if pygame.mixer:
-        pygame.mixer.music.fadeout(1000)
-    
-    end_time = pygame.time.get_ticks()
-    
-    statistics["time_played"] = (end_time - start_time)/1000
-    
-    pygame.event.clear()
-    pygame.time.wait(1000)
-    
-    for sounds in staccato_sounds:
-        sounds.fadeout(500)
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                    going = False
+            
+                #elif event.type == MOUSEBUTTONDOWN:
+                #    laser_sounds[random.randint(0,1)].play()
+            keystate = pygame.key.get_pressed()
+
+            all.clear(screen, background)
+            all.update()
         
-    for sounds in paint_sounds:
-        sounds.fadeout(500)
+            # Player input
+            painting = keystate[K_SPACE]
+            if painting:
+                if global_paint_cooldown - paint_cooldown <= 0:
+                    paint_cooldown = 0
+                    last_cooldown = pygame.time.get_ticks()
+                    random.choice(paint_sounds).play()
+                    Paint(cat.position(), cat.facing)
+                    statistics["lines"] += 1
+        
+            cat.move(prev_mouse_position)
+        
+            paint_cooldown = pygame.time.get_ticks() - last_cooldown
+            respawn_time = pygame.time.get_ticks() - last_respawn
+        
+            # Spawn squares
+        
+            # @TODO I want to eventually do "levels" and wipe the screen
+            # but we'll see if I can actually get that far
+            if len(squares) == 0:
+                last_respawn = pygame.time.get_ticks()
+            
+                for n in range(squares_to_spawn):
+                    Square(choose_color(green_allowed), spawn_buffer)
+                    statistics["squares_appeared"] += 1
+            
+                if squares_to_spawn > 6:
+                    green_allowed = True
+            
+                if statistics["squares"] % random.randint(3,4) == 0:
+                    squares_to_spawn += random.randint(1,2)
+                
+                
+            # Magic Numbers dictating respawn times
+            if respawn_time > random.randint(1500,5000):
+                last_respawn = pygame.time.get_ticks()
+            
+                for n in range(random.randint(1,2)):
+                    Square(choose_color(green_allowed), spawn_buffer)
+                    statistics["squares_appeared"] += 1
+                
+            if pygame.time.get_ticks() - start_time > 20000:
+                spawn_buffer = False
+        
+            # Remove all bounded squares and put them into a special group
+            for sq in iter(squares):
+                if sq.bounded():
+                
+                    statistics["squares_bounded"] += 1
+                    squares.remove(sq)
+                    boundedsquares.add(sq)
+                
+                    bounding_paints = sq.get_bounding_paints(paints)
+                
+                    for bounding in bounding_paints:
+                        paints.remove(bounding)
+                        boundedsquares.add(bounding)
+                
+                    for p in paints:
+                        p.kill()
+                    for s in squares:
+                        s.kill()
+                        statistics["squares_erased"] += 1
+                    
+                    hit_sound.play()
+                
+            # Collision detection
+        
+            
+            # @TODO temporarily disabled while I figure out rect badness
+            for square in pygame.sprite.spritecollide(cat, squares, False):
+                meow_sound.play()
+                cat.kill()
+        
+        
+            # Paint hits square.
+            for square, paint_list in pygame.sprite.groupcollide(squares, paints, False, False).items():
+                statistics["squares"] += 1
+                random.choice(staccato_sounds).play()
+                square.cut(paint_list)
+            
+                
+            # Square hits square. Both stop growing.
+            for square1, square_list in pygame.sprite.groupcollide(squares, squares, False, False).items():
+                for square2 in square_list:
+                    if square1 == square2:
+                        pass
+                    else:
+                        square1.growth = 0
+                        square2.growth = 0
+                    
+                        if square1.rect.contains(square2.rect):
+                                square2.kill()
+                        elif square2.rect.contains(square1.rect):
+                                square1.kill()
+            
+        
+            dirty = all.draw(screen)
+            pygame.display.update(dirty)
+        
+            clock.tick(60)
+            prev_mouse_position = pygame.mouse.get_pos()
+        
+        if pygame.mixer:
+            pygame.mixer.music.fadeout(1000)
+    
+        end_time = pygame.time.get_ticks()
+    
+        statistics["time_played"] = (end_time - start_time)/1000
+    
+        pygame.event.clear()
+        pygame.time.wait(1000)
+    
+        for sounds in staccato_sounds:
+            sounds.fadeout(500)
+        
+        for sounds in paint_sounds:
+            sounds.fadeout(500)
 
-    meow_sound.fadeout(500)
+        meow_sound.fadeout(500)
     
 
-    levelWalls = walls.Walls(screen)
-    background = levelWalls.background
+        levelWalls = walls.Walls(screen)
+        background = levelWalls.background
     
-    # @TODO, this is an inconsistent hack
-    statistics["lines_end"] = Paint.lines_across
+        # @TODO, this is an inconsistent hack
+        statistics["lines_end"] = Paint.lines_across
     
-    score = score_screen(background, statistics)
-    background.blit(score, (0,0))
-    screen.blit(background, (0,0))
-    pygame.display.flip()
+        score = score_screen(background, statistics)
+        background.blit(score, (0,0))
+        screen.blit(background, (0,0))
+        pygame.display.flip()
     
-    # Play the score music
-    Asset.play_music("end.ogg")
-    on_score = True
-    while on_score:
-        event = pygame.event.wait()
-        if event.type == QUIT:
-            on_score = False
-        elif event.type == KEYDOWN and event.key == K_ESCAPE or event.type == MOUSEBUTTONDOWN or (event.type == KEYDOWN and event.key == K_SPACE):
-            on_score = False
+        # Play the score music
+        Asset.play_music("end.ogg")
+        on_score = True
+        while on_score:
+            event = pygame.event.wait()
+            if event.type == QUIT:
+                on_score = False
+                playing = False
+            elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                on_score = False
+                playing = False
+            elif event.type == MOUSEBUTTONDOWN or (event.type == KEYDOWN and event.key == K_SPACE):
+                on_score = False
+                playing = True
+                going = True
     
-    if pygame.mixer:      
-        pygame.mixer.music.fadeout(2000)
+        if pygame.mixer:      
+            pygame.mixer.music.fadeout(2000)
         
     pygame.quit()
 

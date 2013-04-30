@@ -3,15 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>Development/LD26/ld26.py</string>
+	<string>learning_game_programming_LD26.md</string>
 	<key>documents</key>
 	<array>
-		<dict>
-			<key>filename</key>
-			<string>ld26.py</string>
-			<key>lastUsed</key>
-			<date>2013-04-27T02:39:32Z</date>
-		</dict>
 		<dict>
 			<key>children</key>
 			<array>
@@ -19,7 +13,7 @@
 					<key>filename</key>
 					<string>learning_game_programming_LD26.md</string>
 					<key>lastUsed</key>
-					<date>2013-04-27T02:35:26Z</date>
+					<date>2013-04-30T14:39:13Z</date>
 				</dict>
 			</array>
 			<key>expanded</key>
@@ -28,68 +22,60 @@
 			<string>docs</string>
 		</dict>
 		<dict>
-			<key>children</key>
-			<array/>
-			<key>expanded</key>
-			<true/>
-			<key>name</key>
-			<string>Libs</string>
+			<key>filename</key>
+			<string>characters.py</string>
 		</dict>
 		<dict>
-			<key>children</key>
-			<array>
-				<dict>
-					<key>filename</key>
-					<string>cat.py</string>
-				</dict>
-			</array>
-			<key>expanded</key>
-			<true/>
-			<key>name</key>
-			<string>Sprite Classes</string>
+			<key>filename</key>
+			<string>messages.py</string>
+		</dict>
+		<dict>
+			<key>filename</key>
+			<string>pvector.py</string>
+		</dict>
+		<dict>
+			<key>filename</key>
+			<string>spritesheet.py</string>
+		</dict>
+		<dict>
+			<key>filename</key>
+			<string>utils.py</string>
+		</dict>
+		<dict>
+			<key>filename</key>
+			<string>walls.py</string>
+		</dict>
+		<dict>
+			<key>filename</key>
+			<string>painterscat.py</string>
 		</dict>
 	</array>
 	<key>fileHierarchyDrawerWidth</key>
 	<integer>114</integer>
 	<key>metaData</key>
 	<dict>
-		<key>Development/LD26/ld26.py</key>
+		<key>learning_game_programming_LD26.md</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>18</integer>
+				<integer>91</integer>
 				<key>line</key>
-				<integer>11</integer>
+				<integer>270</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
-			<integer>0</integer>
+			<integer>238</integer>
 			<key>firstVisibleLine</key>
-			<integer>7</integer>
-		</dict>
-		<key>Development/LD26/learning_game_programming_LD26.md</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>87</integer>
-				<key>line</key>
-				<integer>46</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>14</integer>
+			<integer>239</integer>
 		</dict>
 	</dict>
 	<key>openDocuments</key>
 	<array>
-		<string>Development/LD26/ld26.py</string>
-		<string>Development/LD26/learning_game_programming_LD26.md</string>
+		<string>learning_game_programming_LD26.md</string>
 	</array>
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{784, 2}, {648, 876}}</string>
+	<string>{{531, 2}, {648, 876}}</string>
 </dict>
 </plist>
